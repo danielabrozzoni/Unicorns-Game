@@ -46,18 +46,18 @@ int punteggio = 0;
 bool is_prime[numeroblocchi];
 
 
-/*
-    \todo: IL LIVELLO 4 È CATTIVO
-    \todo: menù iniziale
-    \todo: impostazioni mouse/tastiera
-    \todo: mostri
-    \todo: sparare
-    \todo: cono gelato pe più punti, molla
-    \todo: piattaforme che si rompono
-    \todo: visualizzare record
+/**
+    \todo IL LIVELLO 4 È CATTIVO
+    \todo menù iniziale
+    \todo impostazioni mouse/tastiera
+    \todo mostri
+    \todo sparare
+    \todo cono gelato pe più punti, molla
+    \todo piattaforme che si rompono
+    \todo visualizzare record
 */
 
-/*
+/**
     OGGETTI POSSIBILI:
     0: cono gelato -> bonus 200 punti
 */
@@ -74,6 +74,14 @@ struct Oggetto
 
 Oggetto blocco[numeroblocchi];
 
+/**
+
+    \brief As the name says, this function isn't used in the real program.
+    Teacher was speaking and I thought that this would be useful
+
+*/
+
+
 void questaCosaPotrebbeServirmi()
 {
     int flag = 0;
@@ -87,6 +95,13 @@ void questaCosaPotrebbeServirmi()
 
 }
 
+/**
+
+    Initializes all the variables that I'll use, it will be helpful in the future if I write something to play
+    two or more consecutives games
+    \todo  write something to play two or more consecutives games
+
+*/
 
 void inizializzaTutto()
 {
@@ -99,51 +114,12 @@ void inizializzaTutto()
 }
 
 
-//Le prossime 40 righe sono parti di programma che falliscono miseramente, ma mi dispiaceva toglierle, quindi eccole qui
-/*
+/**
 
-    Questa funzione servirebbe ad inizializzare matrice[][][] per disegnare lo sfondo.
-    Prende i dati da un file chiamato immagine2.txt, che contiene l'rgb di ogni pixel della foto ea9.jpg
-    Il file è stato scritto da uno script Python presente nella cartella di nome immagine.py
-
-*/
-
-
-void init_Sfondo()
-{
-    ifstream in;
-    in.open("immagine2.txt");
-    for(int i = 0; i < a_immagine; i++)
-        for(int j = 0; j < l_immagine; j++)
-        {
-            int a, b, c;
-            in >> a >> b >> c;
-            matrice[i][j][0] = a;
-            matrice[i][j][1] = b;
-            matrice[i][j][2] = c;
-        }
-}
-
-/*
-
-    Questa funzione servirebbe per disegnare lo sfondo pixel per pixel (in modo da creare le varie sfumature man mano che si avanza)
-    prendendole dal vettore tridimensionale inizializzato con initSfondo(), purtroppo però per qualche strano motivo non funziona e comunque
-    sarebbe qualcosa di troppo pesante da fare.
-    La funzione però la tengo, magari in futuro riesco a migliorarla
-
-*/
-
-void disegna(int alto)
-{
-    int basso = alto + finestray;
-    for(int i = alto; i < basso; i++)
-        for(int j = 0; j < l_immagine; j++)
-            draw_point(i-basso,j,Color(matrice[i][j][0], matrice[i][j][1], matrice[i][j][2], 255));
-}
-
-/*
-
-    Disegna solo un'immagine carina a schermo, non fa nulla di che in effetti
+    \param background's name
+    \brief It draws the background. Only one line of code, it seems like this function is useless, but you can decide in the main
+    what is the background name and pass it to this. (Ok, I've realized that this function is useless, but I've become attached to
+    it, so)
 
 */
 
@@ -152,9 +128,13 @@ void disegnaSfondoVero(char stringa[])
     draw_image(stringa, 0, 0,  finestrax, finestray, 255);
 }
 
-/*
+/**
 
-    Funzione che mi inizializza l'array is_prime, utilizzato per creare apparente casualità
+    Do you know who Eratostene is?
+    Oke, I know, prime numbers are not the best way to create randomness
+    However, I think that they have interesting charateristic: there are only 2 prime numbers that are consecutives,
+    big prime number are more distant than smaller
+    (Maybe I just want to insert mathematics everywhere, idk)
 
 */
 
@@ -173,9 +153,9 @@ void eratostene()
 }
 
 
-/*
+/**
 
-    A parte il primo blocco, lungo quanto la finestra e posto in basso, gli altri sono posti "casualmente" nello schermo
+   \brief First block is as long as the window, other are in the screen, random
 
 */
 
@@ -228,10 +208,10 @@ void creaCoseCasuali()
 }
 
 
-/*
+/**
 
-    Disegna le nuvolette
-    \todo: assicurarmi che disegni nuvolette e non rettangolini
+    \brief Draws the clouds
+    \todo Make sure that it draws clouds and not rectangles
 
 */
 
@@ -244,8 +224,10 @@ void disegnaNuvolette()
 }
 
 
-/*
-    Sposta il personaggio utilizzando i tasti -> e <- sulla tastiera
+/**
+
+    \brief Move the character using right and left arrow
+
 */
 
 void coseCoiTasti()
@@ -257,9 +239,9 @@ void coseCoiTasti()
         x_personaggio++, direzione = 1;
 }
 
-/*
+/**
 
-    Il personaggio si sposta seguendo il puntatore del mouse
+    \brief Move the character using the mouse (it follows the mouse)
 
 */
 
@@ -276,17 +258,16 @@ void coseColMouse(int punteggio)
         direzione = 1;
 }
 
-/*
+/**
 
-    Crea un file di log chiamato file_numero, stampa i valori di un certo vettore
-    Solo per debugging
-
+    \brief write on a file (named "file__" + a char that you decide) the values of a vector
+    Used to debug, because vector are too giants to print on the stdo
 */
 
 
 void stampaSulFileDiLog(int N, char numero_del_file)
 {
-    string a = "file__";
+    string a = "IO_files/file__";
     a += numero_del_file;
     ofstream out;
     out.open(a);
@@ -295,8 +276,10 @@ void stampaSulFileDiLog(int N, char numero_del_file)
 }
 
 
-/*
-    Fa' in modo che le nuvolette scendano
+/**
+
+    \brief Make sure that clouds go down
+
 */
 
 void spostaSchermo()
@@ -305,7 +288,10 @@ void spostaSchermo()
         blocco[i].Y++;
 }
 
-/*
+/**
+
+    This function is the real part of the game
+    It's late and I'm tired and I want to sleep SOOO no, I won't translate this part LOL
     Questa è la funzione che si occupa del gioco vero e proprio
     Riga 198: sposto lo schermo in alto (ogni tanto, altrimenti va troppo veloce, uso l'operatore %)
     Riga 201: decido come comandare il personaggio
@@ -332,9 +318,9 @@ void gioco(char stringa[], int livello, char scelta[])
 
     disegnaNuvolette();
     if(direzione == 1)
-        draw_image("unicorno2.png", x_personaggio, y_personaggio,personaggio,personaggio,255);
+        draw_image("Images/unicorno2.png", x_personaggio, y_personaggio,personaggio,personaggio,255);
     if(direzione == -1)
-        draw_image("unicorno1.png", x_personaggio, y_personaggio,personaggio,personaggio,255);
+        draw_image("Images/unicorno1.png", x_personaggio, y_personaggio,personaggio,personaggio,255);
 
 
     if(cont % velocitaP == 0)
@@ -386,7 +372,7 @@ void gioco(char stringa[], int livello, char scelta[])
     cont++;
 }
 
-/*
+/**
 
     Yeee :)
 
@@ -395,13 +381,14 @@ void gioco(char stringa[], int livello, char scelta[])
 void vinto()
 {
     draw_filled_rect(0,0,finestrax,finestray,Color(255,255,255,255));
-    draw_image("fine.jpg",0,0,626, 626, 255);
-    draw_image("Win.png",15,550,571,130,255);
+    draw_image("Images/fine.jpg",0,0,626, 626, 255);
+    draw_image("Images/Win.png",15,550,571,130,255);
 }
 
-/*
+/**
 
-    Apre il file dove ci sono scritti tutti i punteggi e lo aggiorna
+    \brief Update the file with all the scores
+    \todo Make a file with only 5 - 10 scores
 
 */
 
@@ -411,7 +398,7 @@ void score()
     cout << "Bravo! Inserisci il tuo nome" << endl;
     cin >> nome;
     FILE *out;
-    out = fopen("Vincitori.txt", "a");
+    out = fopen("IO_Files/Vincitori.txt", "a");
     fprintf(out, "%s %d\n", nome, punteggio);
     fclose(out);
     delay(1000);
@@ -420,7 +407,7 @@ void score()
 }
 
 
-/*
+/**
 
     Noo :(
 
@@ -429,20 +416,21 @@ void score()
 void perso()
 {
     draw_filled_rect(0,0,finestrax,finestray,Color(21,27,49,255));              //A quanto pare queste istruzioni non vengono
-    draw_image("sad.png",(finestrax-500)/2,(finestray-600)/2,500,600,255);      // eseguite, eh vabby, era un'immagine carina :(
+    draw_image("Images/sad.png",(finestrax-500)/2,(finestray-600)/2,500,600,255);      // eseguite, eh vabby, era un'immagine carina :(
+    update();
     cout << "Il tuo punteggio è: " << punteggio << endl;
     score();
 }
 
-/*
-    Disegna il menu e ritorna un valore a seconda di cosa è successo
-    Case 1: inizio del gioco
-    Case 2: istruzioni
+/**
+    \brief Draws menu
+    \return Case 1: the game starts
+            Case 2: instructions
 */
 
 int menu()
 {
-    draw_image("Untitled.png",0,0,finestrax,finestray,255);
+    draw_image("Images/Untitled.png",0,0,finestrax,finestray,255);
     int a = get_mouse_x();
     int b = get_mouse_y();
     const int margine = 60;
@@ -472,7 +460,7 @@ int main(int argc, char* argv[])
     srand(time(NULL));
     eratostene();
 
-    char stringa[1000] = "sfondoN.jpg";
+    char stringa[1000] = "Images/sfondoN.jpg";
     int livello = 1;
     char scelta[100] = "tasti";
     int cosafare = 0;

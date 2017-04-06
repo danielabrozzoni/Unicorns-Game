@@ -249,3 +249,33 @@
 	<time.h>
 	<iostream>
 
+1491412690 source:/media/sf_Gioco/GITHUBBALO/vsgl2.cpp
+	<iostream>
+	<map>
+	"version.h"
+	"vsgl2.h"
+
+1487851423 /media/sf_Gioco/GITHUBBALO/version.h
+
+1491157404 /media/sf_Gioco/GITHUBBALO/vsgl2.h
+	<string>
+	<sstream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_net.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL_mixer.h>
+	<SDL2/SDL_ttf.h>
+	"vsgl2_keycode.h"
+
+1487851439 /media/sf_Gioco/GITHUBBALO/vsgl2_keycode.h
+
+1491507191 source:/media/sf_Gioco/GITHUBBALO/main.cpp
+	"vsgl2.h"
+	<iostream>
+	<fstream>
+	<stdlib.h>
+	<cmath>
+	<stdio.h>
+	<time.h>
+	<iostream>
+
