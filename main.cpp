@@ -16,27 +16,27 @@ using namespace vsgl2::io;
 using namespace vsgl2::audio;
 using namespace std;
 
+const int epsilonV = 1;
 const int numeroblocchi = 10000;
 const int finestrax = 600;
 const int finestray = 700;
 const int A = 10;
 const int e = 30;
 const int finegioco = 100000;
-const int l_immagine = 548;                 // servivano quando usavo initSfondo
-const int a_immagine = 27254;               // e disegnavo lo sfondo a mano, ora sono inutili
 const int personaggio = 100;
 const int grandezza = 125;
 const double decelerazione = 0.981;
 const double VyIniziale = 19;
-const double blocchiCircaSullaStessaLinea = 2;
 const int fasciasopra = 200;
 const int fasciasotto = 400;
+const int quantiOggetti = 2;
+const int frequenzaOggetti = 2;
 
+int tempo;
 int velocitaI = 2;
 int velocitaP = 4;
 int direzione = 1;
-int distacco = 100;
-int matrice[a_immagine][l_immagine][3];     // servivano quando usavo initSfondo
+int distacco = 140;
 int x_personaggio = finestrax/2;
 int y_personaggio = finestray - personaggio;
 double Vy = VyIniziale;
@@ -47,12 +47,11 @@ bool is_prime[numeroblocchi];
 
 
 /**
-    \todo IL LIVELLO 4 È CATTIVO
     \todo menù iniziale
     \todo impostazioni mouse/tastiera
     \todo mostri
     \todo sparare
-    \todo cono gelato pe più punti, molla
+    \todo cono gelato per più punti, molla
     \todo piattaforme che si rompono
     \todo visualizzare record
 */
@@ -62,17 +61,33 @@ bool is_prime[numeroblocchi];
     0: cono gelato -> bonus 200 punti
 */
 
+struct Example
+{
+    string file;
+    int altezza;
+    int larghezza;
+};
+
 struct Oggetto
+{
+    int X = 0;
+    int Y = 0;
+    int tipo;
+    int flag = 0;
+};
+
+struct Blocco
 {
     int X = 0;
     int Y = 0;
     int altezza = 0;
     int larghezza = 0;
     int toccato = 0;
-    int cheOggettiCiSono[100];
+    Oggetto coso;
 };
 
-Oggetto blocco[numeroblocchi];
+Blocco blocco[numeroblocchi];
+Example cosini[10];
 
 /**
 
@@ -161,52 +176,30 @@ void eratostene()
 
 void creaCoseCasuali()
 {
+
     blocco[0].X = 0;
     blocco[0].Y = finestray-A ;
     blocco[0].altezza = A;
     blocco[0].larghezza = finestrax;
 
-    for(int i = 1; i < numeroblocchi; i+=2)
+    for(int i = 1; i < numeroblocchi; i++)
     {
         blocco[i].larghezza = grandezza + rand()%10 - 5;
         blocco[i].altezza = A;
         blocco[i].Y = distacco*i - finegioco + rand()%100-50;
         blocco[i].X = rand()%finestrax - blocco[i].larghezza;
 
-        if(is_prime[i])
-            continue;
-        blocco[i+1].larghezza = grandezza + rand()%10 - 5;
-        blocco[i+1].altezza = A;
-        blocco[i+1].Y = distacco*i - finegioco - rand()%100 - 50;
-        blocco[i+1].X = rand()%finestrax - blocco[i].larghezza;
-
-        while(blocco[i].X <= 0 || blocco[i].X >= finestrax - blocco[i].larghezza || abs(blocco[i].X - blocco[i+1].X) < personaggio*2 ||
-                blocco[i+1].X < 0 || blocco[i+1].X > finestrax - blocco[i+1].larghezza)
+        while((i != 1 && blocco[i].X <= 0 || blocco[i].X >= finestrax - blocco[i].larghezza || abs(blocco[i].X - blocco[i-1].X) < personaggio*2 ||
+                blocco[i-1].X < 0) || (i > 2 && abs(blocco[i].X - blocco[i-2].X) < 20))
         {
             blocco[i].X = rand()%finestrax - blocco[i].larghezza;
-            blocco[i+1].X = rand()%finestrax - blocco[i+1].larghezza;
         }
 
-        while(abs(blocco[i].Y - blocco[i+1].Y) > distacco + e*2 )//|| (i <= 1 && abs(blocco[i].Y - blocco[i-1].Y) > distacco + e*2))
-            blocco[i].Y = distacco*i - finegioco + rand()%100-50, blocco[i+1].Y = distacco*i - finegioco + rand()%100-50;
+        while(i != 1 && abs(blocco[i].Y - blocco[i-1].Y) > distacco)//|| (i <= 1 && abs(blocco[i].Y - blocco[i-1].Y) > distacco + e*2))
+            blocco[i].Y = distacco*i - finegioco + rand()%100-50;
 
-
-        /*
-                for(int j = 0; j < rand()%5 && i < numeroblocchi; j++)
-                {
-                    i++;
-                    blocco[i].larghezza = grandezza + rand()%10 - 5;
-                    blocco[i].altezza = A;
-                    blocco[i].Y = distacco*i - finegioco - rand()%100 - 50;
-                    blocco[i].X = rand()%finestrax - blocco[j].larghezza;
-                    while(blocco[i].X < 0 || blocco[i].X > finestrax - blocco[i].larghezza)
-                    {
-                        blocco[i].X = rand()%finestrax - blocco[i].larghezza;
-                    }
-                }*/
     }
 }
-
 
 /**
 
@@ -218,11 +211,18 @@ void creaCoseCasuali()
 void disegnaNuvolette()
 {
     for(int i = 0; i < numeroblocchi; i++)
+    {
         draw_filled_rect(blocco[i].X,blocco[i].Y, blocco[i].larghezza,blocco[i].altezza, Color(255,255,255,255));
+        if(blocco[i].coso.flag && blocco[i].Y + cosini[blocco[i].coso.tipo].altezza > 0 && blocco[i].Y - cosini[blocco[i].coso.tipo].altezza < finestray)
+        {
+            draw_image(cosini[blocco[i].coso.tipo].file,blocco[i].coso.X,blocco[i].coso.Y,
+            cosini[blocco[i].coso.tipo].larghezza,cosini[blocco[i].coso.tipo].altezza,255);
+        }
+    }
     //if(blocco[i].Y < finestray && blocco[i].Y > 0)
     //draw_image("nuvola.png",blocco[i].X,blocco[i].Y, blocco[i].larghezza, blocco[i].altezza);
-}
 
+}
 
 /**
 
@@ -285,8 +285,46 @@ void stampaSulFileDiLog(int N, char numero_del_file)
 void spostaSchermo()
 {
     for(int i = 0; i < numeroblocchi; i++)
+    {
         blocco[i].Y++;
+        if(blocco[i].coso.flag)
+            blocco[i].coso.Y++;
+    }
+
 }
+
+
+/**
+
+    \brief Two functions in one:
+    1) Initializes the variables objects with images name
+    2) Assignes objects to blocks
+
+*/
+
+void oggetti()
+{
+
+    cosini[0].file = "Images/gelato.png";
+    cosini[0].altezza = 50;
+    cosini[0].larghezza = 18;
+    cosini[1].file = "Images/rainbow.png";
+    cosini[1].altezza = 32;
+    cosini[1].larghezza = 45;
+
+    for(int i = 0; i < numeroblocchi; i++)
+    {
+        if(i%frequenzaOggetti == frequenzaOggetti-1)
+        {
+            int c = rand()%quantiOggetti;
+            blocco[i].coso.X = blocco[i].X + rand()%(blocco[i].larghezza - cosini[blocco[i].coso.tipo].larghezza);
+            blocco[i].coso.Y = blocco[i].Y - cosini[c].altezza;
+            blocco[i].coso.flag = true;
+            blocco[i].coso.tipo = c;
+        }
+    }
+}
+
 
 /**
 
@@ -306,9 +344,11 @@ void spostaSchermo()
 
 void gioco(char stringa[], int livello, char scelta[])
 {
+    //int tempo = ms_time();
     disegnaSfondoVero(stringa);
-    if(cont%velocitaI == 0 && cont > 50)
-        spostaSchermo();
+    //cout << tempo << " " << ms_time() << " " << -tempo+ms_time() << endl;
+    if(velocitaI - epsilonV < -tempo+ms_time() && -tempo+ms_time()  > velocitaI + epsilonV && cont > 50)
+        tempo = ms_time(), spostaSchermo();
 
     if(strcmp("tasti", scelta) == 0)
         coseCoiTasti();
@@ -415,8 +455,8 @@ void score()
 
 void perso()
 {
-    draw_filled_rect(0,0,finestrax,finestray,Color(21,27,49,255));              //A quanto pare queste istruzioni non vengono
-    draw_image("Images/sad.png",(finestrax-500)/2,(finestray-600)/2,500,600,255);      // eseguite, eh vabby, era un'immagine carina :(
+    draw_filled_rect(0,0,finestrax,finestray,Color(21,27,49,255));
+    draw_image("Images/sad.png",(finestrax-500)/2,(finestray-600)/2,500,600,255);
     update();
     cout << "Il tuo punteggio è: " << punteggio << endl;
     score();
@@ -427,6 +467,7 @@ void perso()
     \return Case 1: the game starts
             Case 2: instructions
 */
+
 
 int menu()
 {
@@ -455,11 +496,20 @@ int menu()
     return 0;
 }
 
+/**
+    This shit doesn't work ahhhhhhhh
+*/
+
+void modificaVelocita()
+{
+    //epsilonV++;
+    velocitaI--;
+}
+
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
     eratostene();
-
     char stringa[1000] = "Images/sfondoN.jpg";
     int livello = 1;
     char scelta[100] = "tasti";
@@ -482,6 +532,8 @@ int main(int argc, char* argv[])
         {
             creaCoseCasuali();
             inizializzaTutto();
+            oggetti();
+            tempo = ms_time();
             //int tempo = ms_time();
             //cout << tempo;
             /*while(1)
@@ -502,6 +554,8 @@ int main(int argc, char* argv[])
             {
                 if(vittoria == 0)
                     gioco(stringa, livello, scelta);
+               // if(punteggio == 50)
+                 //   velocitaI--;
                 if(vittoria == 1)
                     vinto();
                 if(vittoria == -1)
