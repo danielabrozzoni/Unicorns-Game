@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <iostream>
+#include <algorithm>
+#include <vector>
 //Only to allow auto completion
 //to be ignored
 using namespace vsgl2;
@@ -29,14 +31,17 @@ const double decelerazione = 0.981;
 const double VyIniziale = 19;
 const int fasciasopra = 200;
 const int fasciasotto = 400;
-const int quantiOggetti = 2;
-const int frequenzaOggetti = 2;
+const int quantiOggetti = 3;
+const int frequenzaOggetti = 20;
+const int quantiPunteggi = 5;
+const int numeroVite = 5;
+const int grandezzaCuoricino = 35;
 
 int tempo;
 int velocitaI = 2;
 int velocitaP = 4;
 int direzione = 1;
-int distacco = 140;
+int distacco = 150;
 int x_personaggio = finestrax/2;
 int y_personaggio = finestray - personaggio;
 double Vy = VyIniziale;
@@ -44,7 +49,8 @@ int vittoria = 0;                       // 0 se il gioco deve andare avanti, 1 s
 int cont = 0;
 int punteggio = 0;
 bool is_prime[numeroblocchi];
-
+int vite = 0;
+bool Vite[numeroVite];
 
 /**
     \todo menù iniziale
@@ -59,7 +65,19 @@ bool is_prime[numeroblocchi];
 /**
     OGGETTI POSSIBILI:
     0: cono gelato -> bonus 200 punti
+    1: arcobaleno -> quando ne collezioni 5 puoi sparare una mega arcobalenata
 */
+
+struct Top5
+{
+    string nome;
+    int punteggio;
+    bool operator<(const Top5& b)const
+    {
+        return punteggio > b.punteggio;
+    }
+};
+
 
 struct Example
 {
@@ -88,6 +106,7 @@ struct Blocco
 
 Blocco blocco[numeroblocchi];
 Example cosini[10];
+Top5 top[quantiPunteggi + 1];       //In memoria devo ricordarmi quantiPunteggi diversi, quindi creo un elemento in più per salvarmi l'attuale
 
 /**
 
@@ -199,6 +218,8 @@ void creaCoseCasuali()
             blocco[i].Y = distacco*i - finegioco + rand()%100-50;
 
     }
+
+
 }
 
 /**
@@ -218,9 +239,17 @@ void disegnaNuvolette()
             draw_image(cosini[blocco[i].coso.tipo].file,blocco[i].coso.X,blocco[i].coso.Y,
             cosini[blocco[i].coso.tipo].larghezza,cosini[blocco[i].coso.tipo].altezza,255);
         }
+
     }
     //if(blocco[i].Y < finestray && blocco[i].Y > 0)
     //draw_image("nuvola.png",blocco[i].X,blocco[i].Y, blocco[i].larghezza, blocco[i].altezza);
+
+    for(int i = 0; i < numeroVite; i++)
+    {
+        if(Vite[i] == 1)
+            draw_image("Images/cuore.png",10 + i*grandezzaCuoricino, finestray - 10 - grandezzaCuoricino, grandezzaCuoricino, grandezzaCuoricino);
+    }
+
 
 }
 
@@ -261,7 +290,7 @@ void coseColMouse(int punteggio)
 /**
 
     \brief write on a file (named "file__" + a char that you decide) the values of a vector
-    Used to debug, because vector are too giants to print on the stdo
+    Used to debug, because vector are too giants to print on the stdio
 */
 
 
@@ -269,6 +298,7 @@ void stampaSulFileDiLog(int N, char numero_del_file)
 {
     string a = "IO_files/file__";
     a += numero_del_file;
+    a += ".txt";
     ofstream out;
     out.open(a);
     for(int i = 0; i < N; i++)
@@ -282,15 +312,14 @@ void stampaSulFileDiLog(int N, char numero_del_file)
 
 */
 
-void spostaSchermo()
+void spostaSchermo(int piu)
 {
     for(int i = 0; i < numeroblocchi; i++)
     {
-        blocco[i].Y++;
+        blocco[i].Y+= piu;
         if(blocco[i].coso.flag)
-            blocco[i].coso.Y++;
+            blocco[i].coso.Y+= piu;
     }
-
 }
 
 
@@ -311,18 +340,43 @@ void oggetti()
     cosini[1].file = "Images/rainbow.png";
     cosini[1].altezza = 32;
     cosini[1].larghezza = 45;
+    cosini[2].file = "Images/cuore.png";
+    cosini[2].altezza = 45;
+    cosini[2].larghezza = 45;
+
+
+    /**
+        Questa parte del codice potrebbe sembrare oscura
+        Dato che non è giusto che ogni oggetto appaia sullo schermo con la stessa frequenza,
+        inserisco i vari tipi di oggetti in un vector (gli oggetti con frequenza maggiore vengono
+        inseriti più volte), dopodiché attingo dal vector in modo random e disegno l'oggetto
+        2/4 degli oggetti è un gelato
+        1/4 rainbow
+        1/4 cuore
+    */
+    vector<int> objects;
+    //for(int i = 0; i < 2; i++)
+      //  objects.push_back(0);
+    //for(int i = 0; i < 1; i++)
+      //  objects.push_back(1);
+    for(int i = 0; i < 1; i++)
+        objects.push_back(2);
+
+
 
     for(int i = 0; i < numeroblocchi; i++)
     {
         if(i%frequenzaOggetti == frequenzaOggetti-1)
         {
-            int c = rand()%quantiOggetti;
+            int c = objects.at(rand()%objects.size());
             blocco[i].coso.X = blocco[i].X + rand()%(blocco[i].larghezza - cosini[blocco[i].coso.tipo].larghezza);
             blocco[i].coso.Y = blocco[i].Y - cosini[c].altezza;
             blocco[i].coso.flag = true;
             blocco[i].coso.tipo = c;
         }
     }
+
+
 }
 
 
@@ -341,14 +395,13 @@ void oggetti()
     le altre condizioni mi servono per controllare se sono effettivamente sulla piattaforma)
 */
 
-
 void gioco(char stringa[], int livello, char scelta[])
 {
     //int tempo = ms_time();
     disegnaSfondoVero(stringa);
     //cout << tempo << " " << ms_time() << " " << -tempo+ms_time() << endl;
-    if(velocitaI - epsilonV < -tempo+ms_time() && -tempo+ms_time()  > velocitaI + epsilonV && cont > 50)
-        tempo = ms_time(), spostaSchermo();
+    if(velocitaI - epsilonV < -tempo+ms_time() && -tempo+ms_time()  > velocitaI + epsilonV && cont > 150)
+        tempo = ms_time();
 
     if(strcmp("tasti", scelta) == 0)
         coseCoiTasti();
@@ -376,26 +429,24 @@ void gioco(char stringa[], int livello, char scelta[])
             Vy = VyIniziale;
             if(blocco[i].toccato == 0) //Aumento di punti solo se è la prima volta che tocco un blocco, altrimenti faccio punti restando fermo
                 punteggio += 10, blocco[i].toccato = 1;
-            /*
-                        if((y_personaggio < fasciasotto && y_personaggio > fasciasopra))
-                        {
-                            for(int j = 0; j < numeroblocchi; j++)
-                            {
-                                for(int k = 0; k < 35; k++)
-                                    blocco[j].Y++;
-                            }
-                        }
-            */
-            /*
-            //if(livello == 4)                                //Succedono cose strane
+            if(blocco[i].coso.flag && x_personaggio + personaggio >= blocco[i].coso.X && x_personaggio < blocco[i].coso.X
+            + cosini[blocco[i].coso.tipo].larghezza)
             {
-                for(int j = 1; j < numeroblocchi; j++)
-                    blocco[j].Y += temp/2;
-
+                blocco[i].coso.flag = 0;
+                switch(blocco[i].coso.tipo)
+                {
+                    case 0:
+                        punteggio += 20;
+                        break;
+                    case 2:
+                        if(vite >= 5)
+                            break;
+                        Vite[vite] = 1;
+                        vite++;
+                    default:
+                        break;
+                }
             }
-            */
-
-
         }
 
     if(x_personaggio > finestrax)
@@ -406,9 +457,20 @@ void gioco(char stringa[], int livello, char scelta[])
 
     if(punteggio == finegioco)
         vittoria = 1;
+
+    if(y_personaggio > finestray && vite > 0)
+    {
+        x_personaggio = finestrax/2;
+        y_personaggio = 0;
+        vite--;
+        Vite[vite] = 0;
+    }
+
     if(y_personaggio > finestray)
         vittoria = -1;
 
+    if(y_personaggio < distacco)
+        spostaSchermo(2);
     cont++;
 }
 
@@ -421,9 +483,30 @@ void gioco(char stringa[], int livello, char scelta[])
 void vinto()
 {
     draw_filled_rect(0,0,finestrax,finestray,Color(255,255,255,255));
-    draw_image("Images/fine.jpg",0,0,626, 626, 255);
     draw_image("Images/Win.png",15,550,571,130,255);
+    draw_image("Images/fine.jpg",0,0,626, 626, 255);
 }
+
+
+/**
+    Questa funzione mi legge dal file dei vincitori quali sono i migliori,
+    li mette in strutture apposite
+*/
+
+
+void sempreperipunteggi()
+{
+    int i=0;
+    ifstream in;
+    in.open("IO_files/Vincitori.txt");
+    while(i < quantiPunteggi && in)
+    {
+        in >> top[i].nome >> top[i].punteggio;
+        i++;
+    }
+    in.close();
+}
+
 
 /**
 
@@ -435,14 +518,18 @@ void vinto()
 void score()
 {
     char nome[100];
+    sempreperipunteggi();
     cout << "Bravo! Inserisci il tuo nome" << endl;
-    cin >> nome;
-    FILE *out;
-    out = fopen("IO_Files/Vincitori.txt", "a");
-    fprintf(out, "%s %d\n", nome, punteggio);
-    fclose(out);
+    cin >> top[quantiPunteggi].nome;
+    top[quantiPunteggi].punteggio = punteggio;
+    sort(top,top+quantiPunteggi+1);
+    //cout << top[0].nome << " " << top[0].punteggio << endl;
+    ofstream out;
+    out.open("IO_Files/Vincitori.txt");
+    for(int i = 0; i < 5; i++)
+        out << top[i].nome << " " << top[i].punteggio << endl;
+    out.close();
     delay(1000);
-    //cout << "Vuoi fare un'altra partita? \n \t Premi 1 per giocare ancora \n \t Premi 0 per uscire \n";
     exit(0);
 }
 
@@ -515,7 +602,7 @@ int main(int argc, char* argv[])
     char scelta[100] = "tasti";
     int cosafare = 0;
     init();
-    set_window(finestrax,finestray,"Prima o poi trovo un nome lol");
+    set_window(finestrax,finestray,"Unicorn's Game");
     //stampaSulFileDiLog(numeroblocchi,'0');
 
     while(!done())
@@ -562,6 +649,8 @@ int main(int argc, char* argv[])
                     perso();
                 update();
             }
+
+            break;
         }
     }
     close();

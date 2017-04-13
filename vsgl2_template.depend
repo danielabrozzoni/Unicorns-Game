@@ -4,7 +4,7 @@
 	<map>
 	"vsgl2.h"
 
-1480867618 
+1491418942 
 
 1479505020 f:\alex\progetti c\vsgl2_template\vsgl2.h
 	<string>
@@ -13,7 +13,7 @@
 	<SDL2/SDL_image.h>
 	<SDL2/SDL_mixer.h>
 
-1480855456 mixer.h>
+1480855458 mixer.h>
 
 1479505606 source:c:\users\david\desktop\vsgl2_template\main.cpp
 	"vsgl2.h"
@@ -117,6 +117,8 @@
 	<SDL2/SDL_mixer.h>
 	<SDL2/SDL_ttf.h>
 	"vsgl2_keycode.h"
+
+1491161004 code.h"
 
 1487851346 source:/home/daniela/Scrivania/Prova/main.cpp
 	"vsgl2.h"
@@ -269,7 +271,7 @@
 
 1487851439 /media/sf_Gioco/GITHUBBALO/vsgl2_keycode.h
 
-1491586431 source:/media/sf_Gioco/GITHUBBALO/main.cpp
+1491829684 source:/media/sf_Gioco/GITHUBBALO/main.cpp
 	"vsgl2.h"
 	<iostream>
 	<fstream>
@@ -278,4 +280,71 @@
 	<stdio.h>
 	<time.h>
 	<iostream>
+	<algorithm>
+
+1491936946 >
+
+1491936975 source:f:\githubbalo\vsgl2.cpp
+	<iostream>
+	<map>
+	"version.h"
+	"vsgl2.h"
+
+1487855023 f:\githubbalo\version.h
+
+1491161004 f:\githubbalo\vsgl2.h
+	<string>
+	<sstream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_net.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL_mixer.h>
+	<SDL2/SDL_ttf.h>
+	"vsgl2_keycode.h"
+
+1487855039 f:\githubbalo\vsgl2_keycode.h
+
+1491936946 source:f:\githubbalo\main.cpp
+	"vsgl2.h"
+	<iostream>
+	<fstream>
+	<stdlib.h>
+	<string.h>
+	<cmath>
+	<stdio.h>
+	<time.h>
+	<iostream>
+	<algorithm>
+
+1492112107 source:/media/sf_Gioco/GITHUBBALO/main.cpp
+	"vsgl2.h"
+	<iostream>
+	<fstream>
+	<stdlib.h>
+	<cmath>
+	<stdio.h>
+	<time.h>
+	<iostream>
+	<algorithm>
+	<vector>
+
+1491157404 /media/sf_Gioco/GITHUBBALO/vsgl2.h
+	<string>
+	<sstream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_net.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL_mixer.h>
+	<SDL2/SDL_ttf.h>
+	"vsgl2_keycode.h"
+
+1487851439 /media/sf_Gioco/GITHUBBALO/vsgl2_keycode.h
+
+1491933662 source:/media/sf_Gioco/GITHUBBALO/vsgl2.cpp
+	<iostream>
+	<map>
+	"version.h"
+	"vsgl2.h"
+
+1487851423 /media/sf_Gioco/GITHUBBALO/version.h
 

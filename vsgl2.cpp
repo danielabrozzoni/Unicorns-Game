@@ -385,8 +385,8 @@ int text_height(string font, int dim, string text)
 }
 
 } //END NAMESPACE ttf_fonts
-s*/
 
+*/
 namespace utils
 {
 
