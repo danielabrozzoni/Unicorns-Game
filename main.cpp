@@ -8,8 +8,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-//Only to allow auto completion
-//to be ignored
+
 using namespace vsgl2;
 using namespace vsgl2::general;
 using namespace vsgl2::video;
@@ -36,12 +35,18 @@ const int frequenzaOggetti = 20;
 const int quantiPunteggi = 5;
 const int numeroVite = 5;
 const int grandezzaCuoricino = 35;
+const int distacco = 180;
+const int quantiPersonaggi = 3;
+const int altezzaBottone = 40;
+const int larghezzaBottone = 150;
+const int bottoneX = 520;
+const int bottoneY = 620;
+const int bottone = 50;
 
 int tempo;
 int velocitaI = 2;
-int velocitaP = 4;
+int velocitaP = 15;
 int direzione = 1;
-int distacco = 150;
 int x_personaggio = finestrax/2;
 int y_personaggio = finestray - personaggio;
 double Vy = VyIniziale;
@@ -51,21 +56,24 @@ int punteggio = 0;
 bool is_prime[numeroblocchi];
 int vite = 0;
 bool Vite[numeroVite];
+int ultimoTocco;
 
 /**
     \todo menù iniziale
     \todo impostazioni mouse/tastiera
     \todo mostri
     \todo sparare
-    \todo cono gelato per più punti, molla
+    \todo molla
     \todo piattaforme che si rompono
     \todo visualizzare record
+    \todo se muori ritorni sull'ultimo blocco toccato
 */
 
 /**
     OGGETTI POSSIBILI:
     0: cono gelato -> bonus 200 punti
     1: arcobaleno -> quando ne collezioni 5 puoi sparare una mega arcobalenata
+    2: cuore -> vita in più
 */
 
 struct Top5
@@ -130,6 +138,83 @@ void questaCosaPotrebbeServirmi()
 }
 
 /**
+    Shows the instructions
+*/
+
+void istruzioni()
+{
+    while(1)
+    {
+        draw_image("Images/istruzioni1.png", 0,0,finestrax, finestray, 255);
+        draw_image("Images/bottone.png", bottoneX, bottoneY, bottone, bottone);
+        int a = get_mouse_x();
+        int b = get_mouse_y();
+        if(mouse_left_button_pressed() && a >= bottoneX && a <= bottoneX + bottone && b >= bottoneY && b <= bottoneY + bottone)
+            break;
+        update();
+    }
+}
+
+/**
+    Reads on a file what are the last settings used and initializes them, so, if you kill
+    the process, when you run it again you have the last setting you've used
+    If the file doesn't exists or the settings aren't correct, the function ends
+*/
+
+
+void ultimeImpostazioni(char sx[], char dx[], char sfondo[], char scelta[])
+{
+    ifstream in;
+    in.open("IO_files/settings.txt");
+    char temp[100];
+    in >> temp;
+    if(strcmp(temp,"Images/unicorno1.png") != 0 && strcmp(temp,"Images/unicorno3.png") != 0 && strcmp(temp,"Images/unicorno5.png") != 0)
+    {
+        cout << "Errore: " << temp << endl;
+        return;
+    }
+    strcpy(sx, temp);
+    if(strcmp(temp,"Images/unicorno1.png") == 0)
+        strcpy(dx, "Images/unicorno2.png");
+    else if(strcmp(temp,"Images/unicorno3.png") == 0)
+        strcpy(dx, "Images/unicorno4.png");
+    else if(strcmp(temp,"Images/unicorno5.png") == 0)
+        strcpy(dx, "Images/unicorno6.png");
+    else
+        return;
+
+    in >> temp;
+
+    if(strcmp(temp,"Images/sfondo1.jpg") != 0 && strcmp(temp,"Images/sfondo2.jpg") != 0 && strcmp(temp,"Images/sfondo3.jpg") != 0)
+    {
+        cout << "Errore: " << temp << endl;
+        return;
+    }
+    strcpy(sfondo, temp);
+
+    in >> temp;
+
+    if(strcmp(temp,"mouse") != 0 && strcmp(temp,"tasti") != 0)
+    {
+        cout << "Errore: " << temp << endl;
+        return;
+    }
+
+    strcpy(scelta, temp);
+}
+
+/**
+    Writes on settings.txt last settings used
+*/
+
+void aggiornaImpostazioni(char sx[], char dx[], char sfondo[], char scelta[])
+{
+    ofstream out;
+    out.open("IO_files/settings.txt");
+    out << sx << endl << sfondo << endl << scelta;
+}
+
+/**
 
     Initializes all the variables that I'll use, it will be helpful in the future if I write something to play
     two or more consecutives games
@@ -139,12 +224,12 @@ void questaCosaPotrebbeServirmi()
 
 void inizializzaTutto()
 {
+    tempo = ms_time();
     x_personaggio = finestrax/2;
     y_personaggio = finestray - personaggio;
     Vy = VyIniziale;
     vittoria = 0;
     cont = 0;
-
 }
 
 
@@ -237,7 +322,7 @@ void disegnaNuvolette()
         if(blocco[i].coso.flag && blocco[i].Y + cosini[blocco[i].coso.tipo].altezza > 0 && blocco[i].Y - cosini[blocco[i].coso.tipo].altezza < finestray)
         {
             draw_image(cosini[blocco[i].coso.tipo].file,blocco[i].coso.X,blocco[i].coso.Y,
-            cosini[blocco[i].coso.tipo].larghezza,cosini[blocco[i].coso.tipo].altezza,255);
+                       cosini[blocco[i].coso.tipo].larghezza,cosini[blocco[i].coso.tipo].altezza,255);
         }
 
     }
@@ -355,10 +440,10 @@ void oggetti()
         1/4 cuore
     */
     vector<int> objects;
-    //for(int i = 0; i < 2; i++)
-      //  objects.push_back(0);
-    //for(int i = 0; i < 1; i++)
-      //  objects.push_back(1);
+    for(int i = 0; i < 2; i++)
+        objects.push_back(0);
+    for(int i = 0; i < 1; i++)
+        objects.push_back(1);
     for(int i = 0; i < 1; i++)
         objects.push_back(2);
 
@@ -395,13 +480,13 @@ void oggetti()
     le altre condizioni mi servono per controllare se sono effettivamente sulla piattaforma)
 */
 
-void gioco(char stringa[], int livello, char scelta[])
+void gioco(char stringa[], char scelta[], char sx[], char dx[])
 {
     //int tempo = ms_time();
     disegnaSfondoVero(stringa);
     //cout << tempo << " " << ms_time() << " " << -tempo+ms_time() << endl;
-    if(velocitaI - epsilonV < -tempo+ms_time() && -tempo+ms_time()  > velocitaI + epsilonV && cont > 150)
-        tempo = ms_time();
+//    if(velocitaI - epsilonV < -tempo+ms_time() && -tempo+ms_time()  > velocitaI + epsilonV && cont > 150)
+    //      tempo = ms_time();
 
     if(strcmp("tasti", scelta) == 0)
         coseCoiTasti();
@@ -411,13 +496,13 @@ void gioco(char stringa[], int livello, char scelta[])
 
     disegnaNuvolette();
     if(direzione == 1)
-        draw_image("Images/unicorno2.png", x_personaggio, y_personaggio,personaggio,personaggio,255);
+        draw_image(dx, x_personaggio, y_personaggio,personaggio,personaggio,255);
     if(direzione == -1)
-        draw_image("Images/unicorno1.png", x_personaggio, y_personaggio,personaggio,personaggio,255);
+        draw_image(sx, x_personaggio, y_personaggio,personaggio,personaggio,255);
 
-
-    if(cont % velocitaP == 0)
+    if(ms_time() - tempo >= velocitaP)
     {
+        tempo = ms_time();
         y_personaggio -= Vy;
         Vy -= decelerazione;
     }
@@ -425,26 +510,29 @@ void gioco(char stringa[], int livello, char scelta[])
     for(int i = 0; i < numeroblocchi; i++)
         if(abs(blocco[i].Y - y_personaggio - personaggio + A) < e && x_personaggio + personaggio  >= blocco[i].X && x_personaggio < blocco[i].X + blocco[i].larghezza && blocco[i].Y < finestray && blocco[i].Y > 0 && Vy <= 0)
         {
-            int temp = y_personaggio;
             Vy = VyIniziale;
-            if(blocco[i].toccato == 0) //Aumento di punti solo se è la prima volta che tocco un blocco, altrimenti faccio punti restando fermo
+            ultimoTocco = i;
+            if(blocco[i].toccato == 0)      //Aumento di punti solo se è la prima volta che tocco un blocco, altrimenti faccio punti restando fermo
                 punteggio += 10, blocco[i].toccato = 1;
             if(blocco[i].coso.flag && x_personaggio + personaggio >= blocco[i].coso.X && x_personaggio < blocco[i].coso.X
-            + cosini[blocco[i].coso.tipo].larghezza)
+                    + cosini[blocco[i].coso.tipo].larghezza)
             {
                 blocco[i].coso.flag = 0;
                 switch(blocco[i].coso.tipo)
                 {
-                    case 0:
-                        punteggio += 20;
+                case 0:
+                    punteggio += 20;
+                    break;
+                case 1:
+                    spostaSchermo(500);
+                    break;
+                case 2:
+                    if(vite >= 5)
                         break;
-                    case 2:
-                        if(vite >= 5)
-                            break;
-                        Vite[vite] = 1;
-                        vite++;
-                    default:
-                        break;
+                    Vite[vite] = 1;
+                    vite++;
+                default:
+                    break;
                 }
             }
         }
@@ -460,8 +548,8 @@ void gioco(char stringa[], int livello, char scelta[])
 
     if(y_personaggio > finestray && vite > 0)
     {
-        x_personaggio = finestrax/2;
-        y_personaggio = 0;
+        x_personaggio = blocco[ultimoTocco].X + 10;
+        y_personaggio = blocco[ultimoTocco].Y - personaggio;
         vite--;
         Vite[vite] = 0;
     }
@@ -470,7 +558,9 @@ void gioco(char stringa[], int livello, char scelta[])
         vittoria = -1;
 
     if(y_personaggio < distacco)
-        spostaSchermo(2);
+        spostaSchermo(1);
+
+
     cont++;
 }
 
@@ -517,20 +607,18 @@ void sempreperipunteggi()
 
 void score()
 {
-    char nome[100];
     sempreperipunteggi();
     cout << "Bravo! Inserisci il tuo nome" << endl;
     cin >> top[quantiPunteggi].nome;
     top[quantiPunteggi].punteggio = punteggio;
     sort(top,top+quantiPunteggi+1);
-    //cout << top[0].nome << " " << top[0].punteggio << endl;
     ofstream out;
     out.open("IO_Files/Vincitori.txt");
     for(int i = 0; i < 5; i++)
         out << top[i].nome << " " << top[i].punteggio << endl;
     out.close();
     delay(1000);
-    exit(0);
+    //exit(0);
 }
 
 
@@ -553,6 +641,7 @@ void perso()
     \brief Draws menu
     \return Case 1: the game starts
             Case 2: instructions
+            Case 3: impostazioni
 */
 
 
@@ -562,15 +651,12 @@ int menu()
     int a = get_mouse_x();
     int b = get_mouse_y();
     const int margine = 60;
-    const int altezzaBottone = 40;
-    const int larghezzaBottone = 150;
     const int distacco = 30;
-    const int numerobottoni = 5;
+    const int numerobottoni = 3;
     const int inizioBottoni = (finestray - numerobottoni*altezzaBottone - (numerobottoni-1) * distacco) / 2;
 
     for(int i = 0; i < numerobottoni; i++)
         draw_filled_rect(margine,inizioBottoni + (altezzaBottone + distacco)*i,larghezzaBottone,altezzaBottone,Color(255,255,255,255));
-
     for(int i = 1; i <= numerobottoni; i++)
     {
         if(mouse_left_button_pressed() && a >= margine && a <= larghezzaBottone + margine && b >= inizioBottoni + (i-1)*(distacco+altezzaBottone) && b <= inizioBottoni + i*altezzaBottone + (i-1)* distacco)
@@ -580,77 +666,168 @@ int menu()
             draw_filled_rect(margine,inizioBottoni + (altezzaBottone + distacco)*(i-1),larghezzaBottone,altezzaBottone,Color(253,225,127,255));
     }
 
+    draw_image("Images/gioca.png", margine, inizioBottoni, larghezzaBottone, altezzaBottone, 255);
+    draw_image("Images/istruzioni.png", margine, inizioBottoni + altezzaBottone + distacco, larghezzaBottone, altezzaBottone, 255);
+    draw_image("Images/impostazioni.png", margine, inizioBottoni + 2*altezzaBottone + 2*distacco, larghezzaBottone, altezzaBottone, 255);
+
     return 0;
 }
 
 /**
-    This shit doesn't work ahhhhhhhh
+    Changes the settings, like the charachter you are using, the background...
 */
 
-void modificaVelocita()
+void settings(char sinistra[], char destra[], char sfondo[], char scelta[])
 {
-    //epsilonV++;
-    velocitaI--;
+
+    while(1)
+    {
+        draw_image("Images/Settings.png", 0, 0, finestrax, finestray, 255);
+
+        const int margineY = 130;
+        const int distanza = 50;
+        const int spessore = 2;
+        const int margineX = (finestrax - personaggio*quantiPersonaggi - distanza * (quantiPersonaggi - 1)) / 2;
+
+        draw_image("Images/unicorno1.png",margineX, margineY, personaggio, personaggio);
+        draw_image("Images/unicorno3.png",2*margineX + distanza, margineY, personaggio, personaggio);
+        draw_image("Images/unicorno5.png",3*margineX + distanza*2, margineY, personaggio, personaggio);
+        draw_image("Images/sfondo1_copia.jpg", margineX, margineY*2 + personaggio, personaggio, personaggio);
+        draw_image("Images/sfondo2_copia.jpg",2*margineX + distanza, margineY*2 + personaggio, personaggio, personaggio);
+        draw_image("Images/sfondo3_copia.jpg",3*margineX + distanza*2, margineY*2 + personaggio, personaggio, personaggio);
+        draw_image("Images/bottone.png", bottoneX, bottoneY, bottone, bottone);
+        draw_filled_rect(margineX, margineY*3 + personaggio*2, larghezzaBottone, altezzaBottone, Color(255,255,255,255));
+        draw_filled_rect(2*margineX + larghezzaBottone, margineY*3 + personaggio*2, larghezzaBottone, altezzaBottone, Color(255,255,255,255));
+        draw_image("Images/mouse.png",margineX, margineY*3 + personaggio*2, larghezzaBottone, altezzaBottone);
+        draw_image("Images/Tastiera.png",2*margineX + larghezzaBottone, margineY*3 + personaggio*2, larghezzaBottone, altezzaBottone);
+
+        if(strcmp(sinistra, "Images/unicorno1.png") == 0)
+            draw_rect(margineX - spessore, margineY - spessore, personaggio + spessore*2, personaggio + spessore*2, Color(0,0,0,255));
+        if(strcmp(sinistra, "Images/unicorno3.png") == 0)
+            draw_rect(2*margineX + distanza - spessore, margineY - spessore, personaggio + spessore*2, personaggio + spessore*2, Color(0,0,0,255));
+        if(strcmp(sinistra, "Images/unicorno5.png") == 0)
+            draw_rect(3*margineX + distanza*2 - spessore, margineY - spessore, personaggio + spessore*2, personaggio + spessore*2, Color(0,0,0,255));
+
+        if(strcmp(sfondo, "Images/sfondo1.jpg") == 0)
+            draw_rect(margineX - spessore, margineY*2 + personaggio - spessore, personaggio + spessore*2, personaggio + spessore*2, Color(0,0,0,255));
+        if(strcmp(sfondo, "Images/sfondo2.jpg") == 0)
+            draw_rect(2*margineX + distanza - spessore, margineY*2 + personaggio - spessore, personaggio + spessore*2, personaggio + spessore*2, Color(0,0,0,255));
+        if(strcmp(sfondo, "Images/sfondo3.jpg") == 0)
+            draw_rect(3*margineX + distanza*2 - spessore, margineY*2 + personaggio - spessore, personaggio + spessore*2, personaggio + spessore*2, Color(0,0,0,255));
+
+        if(strcmp(scelta, "mouse") == 0)
+            draw_rect(margineX - spessore, margineY*3 + personaggio*2 - spessore, larghezzaBottone + spessore*2, altezzaBottone + spessore*2, Color(0,0,0,255));
+        if(strcmp(scelta, "tasti") == 0)
+            draw_rect(2*margineX + larghezzaBottone - spessore, margineY*3 + personaggio*2 - spessore, larghezzaBottone + spessore*2, altezzaBottone + spessore*2, Color(0,0,0,255));
+
+        int a = get_mouse_x();
+        int b = get_mouse_y();
+
+        if(mouse_left_button_pressed() && a >= margineX
+                && a <= margineX + personaggio && b >= margineY && b <= margineY + personaggio)
+            strcpy(sinistra, "Images/unicorno1.png"), strcpy(destra, "Images/unicorno2.png");
+
+        if(mouse_left_button_pressed() && a >= 2*margineX + distanza
+                && a <= 2*margineX + distanza + personaggio && b >= margineY && b <= margineY + personaggio)
+            strcpy(sinistra, "Images/unicorno3.png"), strcpy(destra, "Images/unicorno4.png");
+
+        if(mouse_left_button_pressed() && a >= 3*margineX + distanza*2
+                && a <= 3*margineX + distanza*2 + personaggio && b >= margineY && b <= margineY + personaggio)
+            strcpy(sinistra, "Images/unicorno5.png"), strcpy(destra, "Images/unicorno6.png");
+
+        if(mouse_left_button_pressed() && a >= margineX
+                && a <= margineX + personaggio && b >= margineY*2 + personaggio && b <= margineY*2 + personaggio + personaggio)
+            strcpy(sfondo, "Images/sfondo1.jpg");
+
+        if(mouse_left_button_pressed() && a >= 2*margineX + distanza
+                && a <= 2*margineX + distanza + personaggio && b >= margineY*2 + personaggio && b <= margineY*2 + personaggio + personaggio)
+            strcpy(sfondo, "Images/sfondo2.jpg");
+
+        if(mouse_left_button_pressed() && a >= 3*margineX + distanza*2
+                && a <= 3*margineX + distanza*2 + personaggio && b >= margineY*2 + personaggio && b <= margineY*2 + personaggio + personaggio)
+            strcpy(sfondo, "Images/sfondo3.jpg");
+
+        if(mouse_left_button_pressed() && a >= margineX
+                && a <= margineX + larghezzaBottone && b >=  margineY*3 + personaggio*2 && b <=  margineY*3 + personaggio*2 + altezzaBottone)
+            strcpy(scelta, "mouse");
+
+        if(mouse_left_button_pressed() && a >= 2*margineX + larghezzaBottone
+                && a <= 2*margineX + larghezzaBottone*2 && b >=  margineY*3 + personaggio*2 && b <=  margineY*3 + personaggio*2 + altezzaBottone)
+            strcpy(scelta, "tasti");
+
+        if(mouse_left_button_pressed() && a >= bottoneX && a <= bottoneX + bottone && b >= bottoneY && b <= bottoneY + bottone)
+            break;
+
+        update();
+    }
+
 }
 
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
     eratostene();
-    char stringa[1000] = "Images/sfondoN.jpg";
-    int livello = 1;
-    char scelta[100] = "tasti";
+    char sfondo[1000] = "Images/sfondo1.jpg";
+    char personaggioSx[1000] = "Images/unicorno5.png";
+    char personaggioDx[1000] = "Images/unicorno6.png";
+    char scelta[100] = "mouse";
     int cosafare = 0;
+    int flag = 0;
+    ultimeImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
     init();
     set_window(finestrax,finestray,"Unicorn's Game");
-    //stampaSulFileDiLog(numeroblocchi,'0');
 
     while(!done())
     {
-        cosafare = menu();
-        if(cosafare != 0)
-            break;
-        update();
-    }
+        while(!done())
+        {
+            cosafare = menu();
+            if(cosafare != 0)
+                break;
+            update();
+        }
 
-    switch(cosafare)                                                       //GIOCO
-    {
-        case 1:
+        switch(cosafare)
+        {
+        case 1:                                           //GIOCO
         {
             creaCoseCasuali();
             inizializzaTutto();
             oggetti();
-            tempo = ms_time();
-            //int tempo = ms_time();
-            //cout << tempo;
-            /*while(1)
-            {
-                disegnaSfondoVero(stringa);
-                if(tempo - ms_time() >= 3000)
-                    draw_filled_rect(100, 100, 100, 100, Color(25,231,129,255)), update();
-                if(tempo - ms_time() >= 6000)
-                    draw_filled_rect(100, 100, 100, 100, Color(98,237,225,255));
-                if(tempo - ms_time() >= 9000)
-                    draw_filled_rect(100, 100, 100, 100, Color(123,89,76,255));
-                update();
-              // if(tempo - ms_time() > 10000)
-                //    break;
-            }*/
 
             while(!done())
             {
                 if(vittoria == 0)
-                    gioco(stringa, livello, scelta);
-               // if(punteggio == 50)
-                 //   velocitaI--;
+                    gioco(sfondo, scelta, personaggioSx, personaggioDx);
                 if(vittoria == 1)
                     vinto();
                 if(vittoria == -1)
+                {
                     perso();
+                    break;
+                }
+
                 update();
             }
 
             break;
+        }
+
+        case 2:
+        {
+            istruzioni();
+            break;
+        }
+
+        case 3:                                         //SETTINGS
+        {
+            settings(personaggioSx, personaggioDx, sfondo, scelta);
+            aggiornaImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
+            break;
+        }
+
+        default:
+            continue;
         }
     }
     close();
