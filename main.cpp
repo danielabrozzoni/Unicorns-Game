@@ -41,7 +41,7 @@ const int bottoneX = 520;
 const int bottoneY = 620;
 const int bottone = 50;
 const int memoriaProiettili = 20;
-const int quantiBlocchi = 2;
+const int quantiBlocchi = 4;
 const int quantoSiMuovonoBlocchi2 = 200;
 
 int tempo;
