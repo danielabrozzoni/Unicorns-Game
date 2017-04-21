@@ -17,7 +17,7 @@ using namespace vsgl2::io;
 using namespace vsgl2::audio;
 using namespace std;
 
-const int epsilonV = 1;
+const int grandezzaPietra = 15;
 const int numeroblocchi = 10000;
 const int finestrax = 600;
 const int finestray = 700;
@@ -27,24 +27,24 @@ const int finegioco = 100000;
 const int personaggio = 100;
 const int grandezza = 125;
 const double decelerazione = 0.981;
-const double VyIniziale = 19;
-const int fasciasopra = 200;
-const int fasciasotto = 400;
+const double VyIniziale = 20;
 const int quantiOggetti = 3;
-const int frequenzaOggetti = 20;
+const int frequenzaOggetti = 10;
 const int quantiPunteggi = 5;
 const int numeroVite = 5;
 const int grandezzaCuoricino = 35;
-const int distacco = 180;
+const int distacco = 130;
 const int quantiPersonaggi = 3;
 const int altezzaBottone = 40;
 const int larghezzaBottone = 150;
 const int bottoneX = 520;
 const int bottoneY = 620;
 const int bottone = 50;
+const int memoriaProiettili = 20;
+const int quantiBlocchi = 2;
+const int quantoSiMuovonoBlocchi2 = 200;
 
 int tempo;
-int velocitaI = 2;
 int velocitaP = 15;
 int direzione = 1;
 int x_personaggio = finestrax/2;
@@ -57,6 +57,7 @@ bool is_prime[numeroblocchi];
 int vite = 0;
 bool Vite[numeroVite];
 int ultimoTocco;
+int quantiProiettili = 0;
 
 /**
     \todo menù iniziale
@@ -74,6 +75,15 @@ int ultimoTocco;
     0: cono gelato -> bonus 200 punti
     1: arcobaleno -> quando ne collezioni 5 puoi sparare una mega arcobalenata
     2: cuore -> vita in più
+*/
+
+/**
+
+    TIPI DI PIATTAFORME:
+    0: bianco -> normale
+    1: azzurro chiaro -> fantasma
+    2:
+
 */
 
 struct Top5
@@ -109,13 +119,29 @@ struct Blocco
     int altezza = 0;
     int larghezza = 0;
     int toccato = 0;
-    Oggetto coso;
+    int tipoBlocco = 0;
+    int X_iniziale = 0;
+    int direzione = 1;
+    int flag = 1;
+    Oggetto coso;               //oggetto sopra
+};
+
+struct TipoBlocco
+{
+    int r, g, b, a;
+};
+
+struct Proiettile
+{
+    int X = -1;
+    int Y = -1;
 };
 
 Blocco blocco[numeroblocchi];
-Example cosini[10];
+Example cosini[quantiOggetti];
 Top5 top[quantiPunteggi + 1];       //In memoria devo ricordarmi quantiPunteggi diversi, quindi creo un elemento in più per salvarmi l'attuale
-
+Proiettile proiettile[memoriaProiettili];
+TipoBlocco ColoriBlocchi[quantiBlocchi];
 /**
 
     \brief As the name says, this function isn't used in the real program.
@@ -274,12 +300,31 @@ void eratostene()
 
 /**
 
-   \brief First block is as long as the window, other are in the screen, random
+   \brief At first, initializes the colors of the various blocks
+   First block is as long as the window, other are in the screen, random
 
 */
 
 void creaCoseCasuali()
 {
+    //  cout << "in" << endl;
+    ColoriBlocchi[0].r = 255;
+    ColoriBlocchi[0].g = 255;
+    ColoriBlocchi[0].b = 255;
+    ColoriBlocchi[0].a = 255;
+    ColoriBlocchi[1].r = 148;
+    ColoriBlocchi[1].g = 221;
+    ColoriBlocchi[1].b = 252;
+    ColoriBlocchi[1].a = 200;
+    ColoriBlocchi[2].r = 199;
+    ColoriBlocchi[2].g = 71;
+    ColoriBlocchi[2].b = 175;
+    ColoriBlocchi[2].a = 255;
+    ColoriBlocchi[3].r = 0;
+    ColoriBlocchi[3].g = 0;
+    ColoriBlocchi[3].b = 0;
+    ColoriBlocchi[3].a = 255;
+
 
     blocco[0].X = 0;
     blocco[0].Y = finestray-A ;
@@ -288,13 +333,20 @@ void creaCoseCasuali()
 
     for(int i = 1; i < numeroblocchi; i++)
     {
+        if(is_prime[i])
+            blocco[i].tipoBlocco = 1;
+        if(i+3 < numeroblocchi && is_prime[i+rand()%3])
+            blocco[i].tipoBlocco = 2;
+        if(i % 100 == 0)
+            blocco[i].tipoBlocco = 3;
+
         blocco[i].larghezza = grandezza + rand()%10 - 5;
         blocco[i].altezza = A;
         blocco[i].Y = distacco*i - finegioco + rand()%100-50;
         blocco[i].X = rand()%finestrax - blocco[i].larghezza;
 
-        while((i != 1 && blocco[i].X <= 0 || blocco[i].X >= finestrax - blocco[i].larghezza || abs(blocco[i].X - blocco[i-1].X) < personaggio*2 ||
-                blocco[i-1].X < 0) || (i > 2 && abs(blocco[i].X - blocco[i-2].X) < 20))
+        while((i != 1 && (blocco[i].X <= 0 || blocco[i].X >= finestrax - blocco[i].larghezza || abs(blocco[i].X - blocco[i-1].X) < personaggio*2 ||
+                          blocco[i-1].X < 0)) || (i > 2 && abs(blocco[i].X - blocco[i-2].X) < 20))
         {
             blocco[i].X = rand()%finestrax - blocco[i].larghezza;
         }
@@ -302,9 +354,10 @@ void creaCoseCasuali()
         while(i != 1 && abs(blocco[i].Y - blocco[i-1].Y) > distacco)//|| (i <= 1 && abs(blocco[i].Y - blocco[i-1].Y) > distacco + e*2))
             blocco[i].Y = distacco*i - finegioco + rand()%100-50;
 
+        blocco[i].X_iniziale = blocco[i].X;
     }
 
-
+//    cout << "out" << endl;
 }
 
 /**
@@ -318,11 +371,14 @@ void disegnaNuvolette()
 {
     for(int i = 0; i < numeroblocchi; i++)
     {
-        draw_filled_rect(blocco[i].X,blocco[i].Y, blocco[i].larghezza,blocco[i].altezza, Color(255,255,255,255));
-        if(blocco[i].coso.flag && blocco[i].Y + cosini[blocco[i].coso.tipo].altezza > 0 && blocco[i].Y - cosini[blocco[i].coso.tipo].altezza < finestray)
+        if(blocco[i].flag == 1)
         {
-            draw_image(cosini[blocco[i].coso.tipo].file,blocco[i].coso.X,blocco[i].coso.Y,
-                       cosini[blocco[i].coso.tipo].larghezza,cosini[blocco[i].coso.tipo].altezza,255);
+            draw_filled_rect(blocco[i].X,blocco[i].Y, blocco[i].larghezza,blocco[i].altezza, Color(ColoriBlocchi[blocco[i].tipoBlocco].r,ColoriBlocchi[blocco[i].tipoBlocco].g,ColoriBlocchi[blocco[i].tipoBlocco].b,ColoriBlocchi[blocco[i].tipoBlocco].a));
+            if(blocco[i].coso.flag && blocco[i].Y + cosini[blocco[i].coso.tipo].altezza > 0 && blocco[i].Y - cosini[blocco[i].coso.tipo].altezza < finestray)
+            {
+                draw_image(cosini[blocco[i].coso.tipo].file,blocco[i].coso.X,blocco[i].coso.Y,
+                           cosini[blocco[i].coso.tipo].larghezza,cosini[blocco[i].coso.tipo].altezza,255);
+            }
         }
 
     }
@@ -333,6 +389,13 @@ void disegnaNuvolette()
     {
         if(Vite[i] == 1)
             draw_image("Images/cuore.png",10 + i*grandezzaCuoricino, finestray - 10 - grandezzaCuoricino, grandezzaCuoricino, grandezzaCuoricino);
+    }
+
+    for(int i = 0; i < memoriaProiettili; i++)
+    {
+        if(proiettile[i].Y >= 0 && proiettile[i].Y <= finestray && proiettile[i].X >= 0
+                && proiettile[i].X <= finestrax)
+            cout << "l" << endl, draw_image("Images/pietra.png", proiettile[i].X, proiettile[i].Y, grandezzaPietra, grandezzaPietra, 255);
     }
 
 
@@ -405,6 +468,12 @@ void spostaSchermo(int piu)
         if(blocco[i].coso.flag)
             blocco[i].coso.Y+= piu;
     }
+
+    for(int i = 0; i < memoriaProiettili; i++)
+    {
+        proiettile[i].Y += piu;
+        proiettile[i].X += piu/2;
+    }
 }
 
 
@@ -451,7 +520,7 @@ void oggetti()
 
     for(int i = 0; i < numeroblocchi; i++)
     {
-        if(i%frequenzaOggetti == frequenzaOggetti-1)
+        if(i%frequenzaOggetti == frequenzaOggetti-1 && !is_prime[i])
         {
             int c = objects.at(rand()%objects.size());
             blocco[i].coso.X = blocco[i].X + rand()%(blocco[i].larghezza - cosini[blocco[i].coso.tipo].larghezza);
@@ -460,7 +529,6 @@ void oggetti()
             blocco[i].coso.tipo = c;
         }
     }
-
 
 }
 
@@ -482,12 +550,26 @@ void oggetti()
 
 void gioco(char stringa[], char scelta[], char sx[], char dx[])
 {
-    //int tempo = ms_time();
+    //cout << "oke" << endl;
+    //static int flag = 0;
     disegnaSfondoVero(stringa);
-    //cout << tempo << " " << ms_time() << " " << -tempo+ms_time() << endl;
-//    if(velocitaI - epsilonV < -tempo+ms_time() && -tempo+ms_time()  > velocitaI + epsilonV && cont > 150)
-    //      tempo = ms_time();
-
+    for(int i = 0; i < numeroblocchi; i++)
+        switch(blocco[i].tipoBlocco)
+        {
+        case 2:
+        {
+            if(-blocco[i].X_iniziale + blocco[i].X >= quantoSiMuovonoBlocchi2)
+                blocco[i].direzione = -1;
+            else if (blocco[i].X < blocco[i].X_iniziale)
+                blocco[i].direzione = 1;
+            blocco[i].X += blocco[i].direzione;
+            if(blocco[i].coso.flag)
+                blocco[i].coso.X+= blocco[i].direzione;
+            break;
+        }
+        default:
+            break;
+        }
     if(strcmp("tasti", scelta) == 0)
         coseCoiTasti();
 
@@ -508,14 +590,14 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
     }
 
     for(int i = 0; i < numeroblocchi; i++)
-        if(abs(blocco[i].Y - y_personaggio - personaggio + A) < e && x_personaggio + personaggio  >= blocco[i].X && x_personaggio < blocco[i].X + blocco[i].larghezza && blocco[i].Y < finestray && blocco[i].Y > 0 && Vy <= 0)
+        if(blocco[i].tipoBlocco != 1 && abs(blocco[i].Y - y_personaggio - personaggio + A) < e && x_personaggio + personaggio  >= blocco[i].X && x_personaggio < blocco[i].X + blocco[i].larghezza && blocco[i].Y < finestray && blocco[i].Y > 0 && Vy <= 0)
         {
             Vy = VyIniziale;
             ultimoTocco = i;
             if(blocco[i].toccato == 0)      //Aumento di punti solo se è la prima volta che tocco un blocco, altrimenti faccio punti restando fermo
                 punteggio += 10, blocco[i].toccato = 1;
             if(blocco[i].coso.flag && x_personaggio + personaggio >= blocco[i].coso.X && x_personaggio < blocco[i].coso.X
-                    + cosini[blocco[i].coso.tipo].larghezza)
+                    + cosini[blocco[i].coso.tipo].larghezza)            // Se esiste un oggetto lo prendo e succede qualcosa nel gioco
             {
                 blocco[i].coso.flag = 0;
                 switch(blocco[i].coso.tipo)
@@ -559,6 +641,7 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
 
     if(y_personaggio < distacco)
         spostaSchermo(1);
+
 
 
     cont++;
@@ -772,7 +855,6 @@ int main(int argc, char* argv[])
     char personaggioDx[1000] = "Images/unicorno6.png";
     char scelta[100] = "mouse";
     int cosafare = 0;
-    int flag = 0;
     ultimeImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
     init();
     set_window(finestrax,finestray,"Unicorn's Game");
@@ -794,7 +876,6 @@ int main(int argc, char* argv[])
             creaCoseCasuali();
             inizializzaTutto();
             oggetti();
-
             while(!done())
             {
                 if(vittoria == 0)
@@ -825,12 +906,8 @@ int main(int argc, char* argv[])
             aggiornaImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
             break;
         }
-
-        default:
-            continue;
         }
     }
     close();
     return 0;
 }
-
