@@ -33,7 +33,7 @@ const int frequenzaOggetti = 10;
 const int quantiPunteggi = 5;
 const int numeroVite = 5;
 const int grandezzaCuoricino = 35;
-const int distacco = 130;
+const int distacco = 150;
 const int quantiPersonaggi = 3;
 const int altezzaBottone = 40;
 const int larghezzaBottone = 150;
@@ -43,6 +43,8 @@ const int bottone = 50;
 const int memoriaProiettili = 20;
 const int quantiBlocchi = 4;
 const int quantoSiMuovonoBlocchi2 = 200;
+const int durataRandom = 20;            //Non si capisce dal nome, sono parametri
+const int pezziRandom = 3;              // Per inserire i pezzi neri
 
 int tempo;
 int velocitaP = 15;
@@ -60,20 +62,16 @@ int ultimoTocco;
 int quantiProiettili = 0;
 
 /**
-    \todo menù iniziale
-    \todo impostazioni mouse/tastiera
     \todo mostri
     \todo sparare
-    \todo molla
-    \todo piattaforme che si rompono
     \todo visualizzare record
-    \todo se muori ritorni sull'ultimo blocco toccato
+
 */
 
 /**
     OGGETTI POSSIBILI:
     0: cono gelato -> bonus 200 punti
-    1: arcobaleno -> quando ne collezioni 5 puoi sparare una mega arcobalenata
+    1: arcobaleno -> ti cambia la posizione dei blocchi
     2: cuore -> vita in più
 */
 
@@ -82,13 +80,14 @@ int quantiProiettili = 0;
     TIPI DI PIATTAFORME:
     0: bianco -> normale
     1: azzurro chiaro -> fantasma
-    2:
+    2: rosa -> si muovono a destra e sinistra
+    3: nero -> se le tocchi scompaiono
 
 */
 
 struct Top5
 {
-    string nome;
+    char nome[1000];
     int punteggio;
     bool operator<(const Top5& b)const
     {
@@ -142,6 +141,7 @@ Example cosini[quantiOggetti];
 Top5 top[quantiPunteggi + 1];       //In memoria devo ricordarmi quantiPunteggi diversi, quindi creo un elemento in più per salvarmi l'attuale
 Proiettile proiettile[memoriaProiettili];
 TipoBlocco ColoriBlocchi[quantiBlocchi];
+
 /**
 
     \brief As the name says, this function isn't used in the real program.
@@ -250,6 +250,7 @@ void aggiornaImpostazioni(char sx[], char dx[], char sfondo[], char scelta[])
 
 void inizializzaTutto()
 {
+    punteggio = 0;
     tempo = ms_time();
     x_personaggio = finestrax/2;
     y_personaggio = finestray - personaggio;
@@ -331,14 +332,21 @@ void creaCoseCasuali()
     blocco[0].altezza = A;
     blocco[0].larghezza = finestrax;
 
+    int cosiRandom[3];
+    for(int i = 0; i < 3; i++)
+        cosiRandom[i] = numeroblocchi - (rand()%100 + 100 + 400*i);
+
     for(int i = 1; i < numeroblocchi; i++)
     {
         if(is_prime[i])
             blocco[i].tipoBlocco = 1;
         if(i+3 < numeroblocchi && is_prime[i+rand()%3])
             blocco[i].tipoBlocco = 2;
-        if(i % 100 == 0)
+        if(i % 25 + rand()%5 == 0)
             blocco[i].tipoBlocco = 3;
+        for(int j = 0; j < pezziRandom; j++)
+            if(i > cosiRandom[j] && i < cosiRandom[j] + durataRandom)
+                blocco[i].tipoBlocco = 3;
 
         blocco[i].larghezza = grandezza + rand()%10 - 5;
         blocco[i].altezza = A;
@@ -590,12 +598,14 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
     }
 
     for(int i = 0; i < numeroblocchi; i++)
-        if(blocco[i].tipoBlocco != 1 && abs(blocco[i].Y - y_personaggio - personaggio + A) < e && x_personaggio + personaggio  >= blocco[i].X && x_personaggio < blocco[i].X + blocco[i].larghezza && blocco[i].Y < finestray && blocco[i].Y > 0 && Vy <= 0)
+        if(blocco[i].flag == 1 && blocco[i].tipoBlocco != 1 && abs(blocco[i].Y - y_personaggio - personaggio + A) < e && x_personaggio + personaggio  >= blocco[i].X && x_personaggio < blocco[i].X + blocco[i].larghezza && blocco[i].Y < finestray && blocco[i].Y > 0 && Vy <= 0)
         {
             Vy = VyIniziale;
             ultimoTocco = i;
             if(blocco[i].toccato == 0)      //Aumento di punti solo se è la prima volta che tocco un blocco, altrimenti faccio punti restando fermo
                 punteggio += 10, blocco[i].toccato = 1;
+            if(blocco[i].tipoBlocco == 3)
+                blocco[i].flag = 0;
             if(blocco[i].coso.flag && x_personaggio + personaggio >= blocco[i].coso.X && x_personaggio < blocco[i].coso.X
                     + cosini[blocco[i].coso.tipo].larghezza)            // Se esiste un oggetto lo prendo e succede qualcosa nel gioco
             {
@@ -693,8 +703,13 @@ void score()
     sempreperipunteggi();
     cout << "Bravo! Inserisci il tuo nome" << endl;
     cin >> top[quantiPunteggi].nome;
+    char temp[100];
+    strcpy(temp,top[quantiPunteggi].nome);
     top[quantiPunteggi].punteggio = punteggio;
     sort(top,top+quantiPunteggi+1);
+    if (!(top[quantiPunteggi].punteggio == punteggio &&
+    strcmp(top[quantiPunteggi].nome,temp)==0))
+        cout << "Sei nella top " << quantiPunteggi << "!" << endl;
     ofstream out;
     out.open("IO_Files/Vincitori.txt");
     for(int i = 0; i < 5; i++)
@@ -757,7 +772,8 @@ int menu()
 }
 
 /**
-    Changes the settings, like the charachter you are using, the background...
+    Changes the settings, like the charachter you are using, the background or how
+    you control the unicorn
 */
 
 void settings(char sinistra[], char destra[], char sfondo[], char scelta[])
@@ -846,6 +862,13 @@ void settings(char sinistra[], char destra[], char sfondo[], char scelta[])
 
 }
 
+void coseDaFarePrimaDiIniziare()
+{
+    creaCoseCasuali();
+    inizializzaTutto();
+    oggetti();
+}
+
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
@@ -873,9 +896,7 @@ int main(int argc, char* argv[])
         {
         case 1:                                           //GIOCO
         {
-            creaCoseCasuali();
-            inizializzaTutto();
-            oggetti();
+            coseDaFarePrimaDiIniziare();
             while(!done())
             {
                 if(vittoria == 0)
@@ -894,7 +915,7 @@ int main(int argc, char* argv[])
             break;
         }
 
-        case 2:
+        case 2:                                         //INSTRUCTIONS
         {
             istruzioni();
             break;
