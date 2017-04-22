@@ -14,6 +14,7 @@ using namespace vsgl2::general;
 using namespace vsgl2::video;
 using namespace vsgl2::utils;
 using namespace vsgl2::io;
+using namespace vsgl2::ttf_fonts;
 using namespace vsgl2::audio;
 using namespace std;
 
@@ -48,7 +49,8 @@ const int pezziRandom = 3;              // Per inserire i pezzi neri
 const int velocitaBlocchi2 = 7;
 const int quantiBlocchi = 4;
 const int quantiTipiMostri = 2;
-const int quantiMostriNelGioco = 3;
+const int quantiMostriNelGioco = 5;
+const int viteMostro = 2;
 
 int tempo;
 int velocitaP = 15;
@@ -144,7 +146,7 @@ struct Mostro
 {
     int X = -1;
     int Y = -1;
-    int vite = 2;
+    int vite = viteMostro;
     int tipo = 0;
 };
 
@@ -272,6 +274,12 @@ void inizializzaTutto()
     Vy = VyIniziale;
     vittoria = 0;
     cont = 0;
+    for(int i = 0; i < memoriaProiettili; i++)
+        proiettile[i].X = proiettile[i].Y = -1;
+    for(int i = 0; i < numeroblocchi; i++)
+        blocco[i].toccato = 0;
+    for(int i = 0; i < quantiMostriNelGioco; i++)
+        mostro[i].vite = viteMostro;
 
 }
 
@@ -581,7 +589,7 @@ void oggetti()
 
     for(int i = 0; i < quantiMostriNelGioco; i++)
     {
-        mostro[i].X = rand()%finestrax/2 + rand()%10;
+        mostro[i].X = rand()%finestrax/2;
         mostro[i].Y = -3000*i + rand()%10;
     }
 
@@ -670,7 +678,7 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
                     punteggio += 20;
                     break;
                 case 1:
-                    spostaSchermo(500);
+                    spostaSchermo(1000);
                     break;
                 case 2:
                     if(vite >= 5)
@@ -734,7 +742,16 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
                 proiettile[i].Y = -1;
             }
 
-            if(mostro[j].vite >= 0 && y_personaggio > mostro[j].Y && y_personaggio < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
+            if(vite > 0 && mostro[j].vite > 0 && y_personaggio > mostro[j].Y && y_personaggio < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
+            && x_personaggio + grandezzaPersonaggio > mostro[j].X && x_personaggio < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
+            {
+                x_personaggio = blocco[ultimoTocco].X + 10;
+                y_personaggio = blocco[ultimoTocco].Y - grandezzaPersonaggio;
+                vite--;
+                Vite[vite] = 0;
+            }
+
+            if(mostro[j].vite > 0 && y_personaggio > mostro[j].Y && y_personaggio < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
             && x_personaggio + grandezzaPersonaggio > mostro[j].X && x_personaggio < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
             {
                 vittoria = -1;
