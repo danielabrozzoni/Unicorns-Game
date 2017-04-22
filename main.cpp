@@ -8,13 +8,13 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <string.h>
 
 using namespace vsgl2;
 using namespace vsgl2::general;
 using namespace vsgl2::video;
 using namespace vsgl2::utils;
 using namespace vsgl2::io;
-using namespace vsgl2::ttf_fonts;
 using namespace vsgl2::audio;
 using namespace std;
 
@@ -22,6 +22,7 @@ const int grandezzaPietra = 15;
 const int grandezzaPersonaggio = 100;
 const int grandezzaBlocchi = 125;
 const int grandezzaCuoricino = 35;
+const int grandezzaFreccia = 50;
 const int altezzaBottone = 40;
 const int larghezzaBottone = 150;
 
@@ -442,6 +443,8 @@ void disegnaNuvolette()
         if(mostro[i].vite > 0 && mostro[i].Y + EsempiMostri[mostro[i].tipo].altezza >= 0 && mostro[i].Y <= finestray && mostro[i].X >= 0
                 && mostro[i].X <= finestrax)
             draw_image(EsempiMostri[mostro[i].tipo].file, mostro[i].X, mostro[i].Y, EsempiMostri[mostro[i].tipo].larghezza, EsempiMostri[mostro[i].tipo].altezza, 255);
+        if(abs(y_personaggio - mostro[i.Y]) < finestray && mostro[i].vite > 0)
+            draw_image("Images/freccia.png", mostro[i].X + EsempiMostri[mostro[i].tipo].larghezza/2, finestray - 100, grandezzaFreccia, grandezzaFreccia, 255);
     }
 
 
