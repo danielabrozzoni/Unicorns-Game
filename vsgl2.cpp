@@ -53,10 +53,10 @@ void init()
         SDL_Log("Image subsystem inizialitation error.");
     else
         SDL_Log("SDL image OK!");
-    //if (TTF_Init() == -1)
-        //SDL_Log("TTF subsystem inizialitation error.");
-    //else
-        //SDL_Log("SDL TTF OK!");
+    if (TTF_Init() == -1)
+        SDL_Log("TTF subsystem inizialitation error.");
+    else
+        SDL_Log("SDL TTF OK!");
     if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
         SDL_Log("SDL_mixer subsystem inizialitation error. SDL_mixer Error: %s\n",
                 Mix_GetError() );
@@ -294,7 +294,7 @@ namespace io
 
 
 }
-/*
+
 namespace ttf_fonts
 {
 
@@ -386,7 +386,7 @@ int text_height(string font, int dim, string text)
 
 } //END NAMESPACE ttf_fonts
 
-*/
+
 namespace utils
 {
 

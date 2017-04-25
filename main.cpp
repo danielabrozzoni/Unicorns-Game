@@ -16,6 +16,7 @@ using namespace vsgl2::video;
 using namespace vsgl2::utils;
 using namespace vsgl2::io;
 using namespace vsgl2::audio;
+using namespace vsgl2::ttf_fonts;
 using namespace std;
 
 const int grandezzaPietra = 15;
@@ -52,6 +53,7 @@ const int quantiBlocchi = 4;
 const int quantiTipiMostri = 2;
 const int quantiMostriNelGioco = 5;
 const int viteMostro = 2;
+const int marginePunteggio = 10;
 
 int tempo;
 int velocitaP = 15;
@@ -67,6 +69,7 @@ int vite = 0;
 bool Vite[numeroVite];
 int ultimoTocco;
 int quantiProiettili = 0;
+string a;
 
 /**
     \todo mostri
@@ -89,6 +92,13 @@ int quantiProiettili = 0;
     1: azzurro chiaro -> fantasma
     2: rosa -> si muovono a destra e sinistra
     3: nero -> se le tocchi scompaiono
+
+*/
+
+/**
+
+    If namespace font doesn't work:
+    Compiler -> linker -> -lSDL2_ttf
 
 */
 
@@ -182,7 +192,20 @@ void questaCosaPotrebbeServirmi()
 }
 
 /**
-    \brief Shows the instructions
+    \brief It shows the score
+*/
+
+void ShowScore()
+{
+    char buffer[100];
+    int n = sprintf(buffer, "%d", punteggio);
+    draw_text("Font/Pixeled.ttf",15,"SCORE", marginePunteggio, marginePunteggio, Color(0,0,0,255));
+    draw_text("Font/Pixeled.ttf",15,buffer,marginePunteggio, marginePunteggio+text_height("Font/Pixeled.ttf",15,"SCORE"), Color(0,0,0,255));
+}
+
+
+/**
+    \brief It shows the instructions
 */
 
 void istruzioni()
@@ -443,7 +466,7 @@ void disegnaNuvolette()
         if(mostro[i].vite > 0 && mostro[i].Y + EsempiMostri[mostro[i].tipo].altezza >= 0 && mostro[i].Y <= finestray && mostro[i].X >= 0
                 && mostro[i].X <= finestrax)
             draw_image(EsempiMostri[mostro[i].tipo].file, mostro[i].X, mostro[i].Y, EsempiMostri[mostro[i].tipo].larghezza, EsempiMostri[mostro[i].tipo].altezza, 255);
-        if(abs(y_personaggio - mostro[i.Y]) < finestray && mostro[i].vite > 0)
+        if(abs(y_personaggio - mostro[i].Y) < finestray && mostro[i].vite > 0)
             draw_image("Images/freccia.png", mostro[i].X + EsempiMostri[mostro[i].tipo].larghezza/2, finestray - 100, grandezzaFreccia, grandezzaFreccia, 255);
     }
 
@@ -593,7 +616,7 @@ void oggetti()
     for(int i = 0; i < quantiMostriNelGioco; i++)
     {
         mostro[i].X = rand()%finestrax/2;
-        mostro[i].Y = -3000*i + rand()%10;
+        mostro[i].Y = -3000*(i+1) + rand()%10;
     }
 
 }
@@ -618,6 +641,7 @@ void oggetti()
 
 void gioco(char stringa[], char scelta[], char sx[], char dx[])
 {
+
     static int flag = 0;
     disegnaSfondoVero(stringa);
     if(strcmp("tasti", scelta) == 0)
@@ -681,7 +705,7 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
                     punteggio += 20;
                     break;
                 case 1:
-                    spostaSchermo(1000);
+                    spostaSchermo(10000);
                     break;
                 case 2:
                     if(vite >= 5)
@@ -730,7 +754,6 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
     if(!is_pressed(VSGL_S) && flag == 1)
         flag = 0;
 
-
     for(int i = 0; i < memoriaProiettili; i++)
     {
         proiettile[i].Y-=2;
@@ -742,6 +765,7 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
             {
                 //cout << "vite: " << mostro[j].vite << endl;
                 mostro[j].vite--;
+                punteggio += 500;
                 proiettile[i].Y = -1;
             }
 
@@ -764,6 +788,7 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
 
 
     cont++;
+    ShowScore();
 }
 
 /**
@@ -1002,7 +1027,6 @@ int main(int argc, char* argv[])
     ultimeImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
     init();
     set_window(finestrax,finestray,"Unicorn's Game");
-
     while(!done())
     {
         while(!done())

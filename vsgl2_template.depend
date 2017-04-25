@@ -316,7 +316,7 @@
 	<iostream>
 	<algorithm>
 
-1492803652 source:/media/sf_Gioco/GITHUBBALO/main.cpp
+1493126053 source:/media/sf_Gioco/GITHUBBALO/main.cpp
 	"vsgl2.h"
 	<iostream>
 	<fstream>
@@ -327,6 +327,7 @@
 	<iostream>
 	<algorithm>
 	<vector>
+	<string.h>
 
 1491157404 /media/sf_Gioco/GITHUBBALO/vsgl2.h
 	<string>
@@ -340,7 +341,7 @@
 
 1487851439 /media/sf_Gioco/GITHUBBALO/vsgl2_keycode.h
 
-1492113106 source:/media/sf_Gioco/GITHUBBALO/vsgl2.cpp
+1493125747 source:/media/sf_Gioco/GITHUBBALO/vsgl2.cpp
 	<iostream>
 	<map>
 	"version.h"
