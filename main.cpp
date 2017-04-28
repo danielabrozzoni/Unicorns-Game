@@ -24,15 +24,15 @@ const int grandezzaPersonaggio = 100;
 const int grandezzaBlocchi = 125;
 const int grandezzaCuoricino = 35;
 const int grandezzaFreccia = 50;
-const int altezzaBottone = 40;
+const int altezzaBottone = 50;
 const int larghezzaBottone = 150;
 
 const int numeroblocchi = 10000;
 const int finestrax = 600;
 const int finestray = 700;
 const int finegioco = 1000000;
-const int A = 10;
-const int e = 30;
+const int A = 10;           //epsilon
+const int e = 30;           //epsilon
 const double decelerazione = 0.981;
 const double VyIniziale = 20;
 const int distacco = 135;
@@ -53,7 +53,7 @@ const int quantiBlocchi = 4;
 const int quantiTipiMostri = 2;
 const int quantiMostriNelGioco = 5;
 const int viteMostro = 2;
-const int marginePunteggio = 10;
+const int marginePunteggio = 10;        //Per disegnare gli high scores 
 
 int tempo;
 int velocitaP = 15;
@@ -69,7 +69,6 @@ int vite = 0;
 bool Vite[numeroVite];
 int ultimoTocco;
 int quantiProiettili = 0;
-string a;
 
 /**
     \todo mostri
@@ -208,7 +207,7 @@ void ShowScore()
     \brief It shows the instructions
 */
 
-void istruzioni()
+void instructions()
 {
     while(1)
     {
@@ -229,7 +228,7 @@ void istruzioni()
 */
 
 
-void ultimeImpostazioni(char sx[], char dx[], char sfondo[], char scelta[])
+void lastSettings(char sx[], char dx[], char sfondo[], char scelta[])
 {
     ifstream in;
     in.open("IO_files/settings.txt");
@@ -274,7 +273,7 @@ void ultimeImpostazioni(char sx[], char dx[], char sfondo[], char scelta[])
     \brief Writes on settings.txt last settings used
 */
 
-void aggiornaImpostazioni(char sx[], char dx[], char sfondo[], char scelta[])
+void updtateSettings(char sx[], char dx[], char sfondo[], char scelta[])
 {
     ofstream out;
     out.open("IO_files/settings.txt");
@@ -318,7 +317,7 @@ void inizializzaTutto()
 
 */
 
-void disegnaSfondoVero(char stringa[])
+void disegnaSfondo(char stringa[])
 {
     draw_image(stringa, 0, 0,  finestrax, finestray, 255);
 }
@@ -432,7 +431,7 @@ void creaCoseCasuali()
 
 */
 
-void disegnaNuvolette()
+void disegna()
 {
     for(int i = 0; i < numeroblocchi; i++)
     {
@@ -643,14 +642,14 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
 {
 
     static int flag = 0;
-    disegnaSfondoVero(stringa);
+    disegnaSfondo(stringa);
     if(strcmp("tasti", scelta) == 0)
         coseCoiTasti();
 
     else if(strcmp("mouse", scelta) == 0)
         coseColMouse(cont);
 
-    disegnaNuvolette();
+    disegna();
     if(direzione == 1)
         draw_image(dx, x_personaggio, y_personaggio,grandezzaPersonaggio,grandezzaPersonaggio,255);
     if(direzione == -1)
@@ -663,8 +662,9 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
         Vy -= decelerazione;
     }
 
-    if(ms_time() - tempo >= velocitaBlocchi2){
-    for(int i = 0; i < numeroblocchi; i++)
+    if(ms_time() - tempo >= velocitaBlocchi2)
+    {
+        for(int i = 0; i < numeroblocchi; i++)
             switch(blocco[i].tipoBlocco)
             {
             case 2:
@@ -681,7 +681,7 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
             default:
                 break;
             }
-            }
+    }
 
     for(int i = 0; i < numeroblocchi; i++)
         if(blocco[i].flag == 1 && abs(blocco[i].Y - y_personaggio - grandezzaPersonaggio + A) < e && x_personaggio + grandezzaPersonaggio  >= blocco[i].X && x_personaggio < blocco[i].X + blocco[i].larghezza && blocco[i].Y < finestray && blocco[i].Y > 0 && Vy <= 0)
@@ -760,26 +760,26 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
         proiettile[i].X--;
         for(int j = 0; j < quantiMostriNelGioco; j++)
         {
-            if(proiettile[i].Y > 0 && proiettile[i].Y < finestray && mostro[j].Y > 0 && mostro[j].Y < finestray && proiettile[i].Y > mostro[j].Y && proiettile[i].Y < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
-            && proiettile[i].X > mostro[j].X && proiettile[i].X < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
+            if(proiettile[i].Y > 0 && proiettile[i].Y < finestray && mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza > 0 && mostro[j].Y < finestray && proiettile[i].Y > mostro[j].Y && proiettile[i].Y < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
+                    && proiettile[i].X > mostro[j].X && proiettile[i].X < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
             {
                 //cout << "vite: " << mostro[j].vite << endl;
                 mostro[j].vite--;
-                punteggio += 500;
+                punteggio += 200;
                 proiettile[i].Y = -1;
             }
 
             if(vite > 0 && mostro[j].vite > 0 && y_personaggio > mostro[j].Y && y_personaggio < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
-            && x_personaggio + grandezzaPersonaggio > mostro[j].X && x_personaggio < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
+                    && x_personaggio + grandezzaPersonaggio > mostro[j].X && x_personaggio < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
             {
-                x_personaggio = blocco[ultimoTocco].X + 10;
-                y_personaggio = blocco[ultimoTocco].Y - grandezzaPersonaggio;
+                x_personaggio = blocco[ultimoTocco - 1].X + 10;
+                y_personaggio = blocco[ultimoTocco - 1].Y - grandezzaPersonaggio;
                 vite--;
                 Vite[vite] = 0;
             }
 
             if(mostro[j].vite > 0 && y_personaggio > mostro[j].Y && y_personaggio < mostro[j].Y + EsempiMostri[mostro[j].tipo].altezza
-            && x_personaggio + grandezzaPersonaggio > mostro[j].X && x_personaggio < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
+                    && x_personaggio + grandezzaPersonaggio > mostro[j].X && x_personaggio < mostro[j].X + EsempiMostri[mostro[j].tipo].larghezza)
             {
                 vittoria = -1;
             }
@@ -824,6 +824,69 @@ void sempreperipunteggi()
     in.close();
 }
 
+/**
+
+    \brief It shows high scores
+
+*/
+
+
+void ShowHighScore()
+{
+    const int larghezzaBottone = 300;
+    sempreperipunteggi();
+    while(1)
+    {
+        draw_image("Images/Untitled2.png",0,0,finestrax,finestray,255);
+
+        int a = get_mouse_x();
+        int b = get_mouse_y();
+        const int margine = 60;
+        const int distacco = 30;
+        const int numerobottoni = quantiPunteggi;
+        const int inizioBottoni = (finestray - numerobottoni*altezzaBottone - (numerobottoni-1) * distacco) / 2;
+        int alt = text_height("Font/w.ttf", 70, "High scores");
+        int lungh = text_width("Font/w.ttf", 70, "High scores");
+        draw_text("Font/w.ttf", 70, "High scores", margine + (larghezzaBottone + distacco/2 + altezzaBottone - lungh)/2, (inizioBottoni - alt)/2, Color(192,86,243,255));
+        for(int i = 0; i < numerobottoni; i++)
+            {
+                draw_filled_rect(margine, inizioBottoni + (altezzaBottone + distacco)*i,larghezzaBottone,altezzaBottone,Color(255,255,255,255));
+                draw_filled_rect(margine + distacco/2 + larghezzaBottone, inizioBottoni + (altezzaBottone + distacco)*i,altezzaBottone,altezzaBottone,Color(255,255,255,255));
+            }
+        for(int i = 1; i <= numerobottoni; i++)
+        {
+            // Qui ci metto sotto la data
+            //if(mouse_left_button_pressed() && a >= margine && a <= larghezzaBottone + margine && b >= inizioBottoni + (i-1)*(distacco+altezzaBottone) && b <= inizioBottoni + i*altezzaBottone + (i-1)* distacco)
+            //  cout << i << endl;
+
+            if(!mouse_left_button_pressed() && a >= margine && a <= larghezzaBottone + margine && b >= inizioBottoni + (i-1)*(distacco+altezzaBottone) && b <= inizioBottoni + i*altezzaBottone + (i-1)* distacco)
+                draw_filled_rect(margine,inizioBottoni + (altezzaBottone + distacco)*(i-1),larghezzaBottone,altezzaBottone,Color(253,225,127,255));
+
+            if(!mouse_left_button_pressed() && a >= margine + larghezzaBottone + distacco/2 && a <= margine + larghezzaBottone + distacco/2 + altezzaBottone && b >= inizioBottoni + (i-1)*(distacco+altezzaBottone) && b <= inizioBottoni + i*altezzaBottone + (i-1)* distacco)
+                draw_filled_rect(margine + distacco/2 + larghezzaBottone,inizioBottoni + (altezzaBottone + distacco)*(i-1),altezzaBottone,altezzaBottone,Color(253,225,127,255));
+
+        }
+
+
+        for(int i = 0; i < quantiPunteggi; i++)
+        {
+            int larghezza = text_width("Font/OpenSans-regular.ttf", 20, top[i].nome);
+            int altezza = text_height("Font/OpenSans-regular.ttf", 20, top[i].nome);
+            draw_text("Font/OpenSans-regular.ttf", 20, top[i].nome, margine + (larghezzaBottone - larghezza)/2, inizioBottoni + i*altezzaBottone + i*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+            char punteggio[100];
+            int a = sprintf(punteggio, "%d", top[i].punteggio);
+            larghezza =text_width("Font/OpenSans-regular.ttf", 20, punteggio);
+            altezza = text_height("Font/OpenSans-regular.ttf", 20, punteggio);
+            draw_text("Font/OpenSans-regular.ttf", 20, punteggio, margine + distacco/2 + larghezzaBottone + (altezzaBottone - larghezza)/2, inizioBottoni + i*altezzaBottone + i*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+        }
+
+        draw_image("Images/bottone.png", bottoneX, bottoneY, bottone, bottone);
+        if(mouse_left_button_pressed() && a >= bottoneX && a <= bottoneX + bottone && b >= bottoneY && b <= bottoneY + bottone)
+            break;
+
+        update();
+    }
+}
 
 /**
 
@@ -839,14 +902,15 @@ void score()
     strcpy(temp,top[quantiPunteggi].nome);
     top[quantiPunteggi].punteggio = punteggio;
     sort(top,top+quantiPunteggi+1);
-    if (!(top[quantiPunteggi].punteggio == punteggio && strcmp(top[quantiPunteggi].nome,temp)==0))
-        cout << "Sei nella top " << quantiPunteggi << "!" << endl;
+    //if (!(top[quantiPunteggi].punteggio == punteggio && strcmp(top[quantiPunteggi].nome,temp)==0))
+        //cout << "Sei nella top " << quantiPunteggi << "!" << endl;
     ofstream out;
     out.open("IO_Files/Vincitori.txt");
     for(int i = 0; i < quantiPunteggi; i++)
         out << top[i].nome << " " << top[i].punteggio << endl;
     out.close();
     delay(1000);
+    ShowHighScore();
     //exit(0);
 }
 
@@ -881,7 +945,7 @@ int menu()
     int b = get_mouse_y();
     const int margine = 60;
     const int distacco = 30;
-    const int numerobottoni = 3;
+    const int numerobottoni = 4;
     const int inizioBottoni = (finestray - numerobottoni*altezzaBottone - (numerobottoni-1) * distacco) / 2;
 
     for(int i = 0; i < numerobottoni; i++)
@@ -895,9 +959,22 @@ int menu()
             draw_filled_rect(margine,inizioBottoni + (altezzaBottone + distacco)*(i-1),larghezzaBottone,altezzaBottone,Color(253,225,127,255));
     }
 
-    draw_image("Images/gioca.png", margine, inizioBottoni, larghezzaBottone, altezzaBottone, 255);
-    draw_image("Images/istruzioni.png", margine, inizioBottoni + altezzaBottone + distacco, larghezzaBottone, altezzaBottone, 255);
-    draw_image("Images/impostazioni.png", margine, inizioBottoni + 2*altezzaBottone + 2*distacco, larghezzaBottone, altezzaBottone, 255);
+    int larghezza = text_width("Font/OpenSans-regular.ttf", 20, "Gioca!");
+    int altezza = text_height("Font/OpenSans-regular.ttf", 20, "Gioca!");
+    draw_text("Font/OpenSans-regular.ttf", 20, "Gioca!", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+
+    larghezza = text_width("Font/OpenSans-regular.ttf", 20, "Istruzioni");
+    altezza = text_height("Font/OpenSans-regular.ttf", 20, "Istruzioni");
+    draw_text("Font/OpenSans-regular.ttf", 20, "Istruzioni", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + altezzaBottone + distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+
+    larghezza = text_width("Font/OpenSans-regular.ttf", 20, "Impostazioni");
+    altezza = text_height("Font/OpenSans-regular.ttf", 20, "Impostazioni");
+    draw_text("Font/OpenSans-regular.ttf", 20, "Impostazioni", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + 2*altezzaBottone + 2*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+
+    larghezza = text_width("Font/OpenSans-regular.ttf", 20, "High scores");
+    altezza = text_height("Font/OpenSans-regular.ttf", 20, "High scores");
+    draw_text("Font/OpenSans-regular.ttf", 20, "High scores", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + 3*altezzaBottone + 3*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+
 
     return 0;
 }
@@ -913,7 +990,6 @@ void settings(char sinistra[], char destra[], char sfondo[], char scelta[])
     const int pochissimo = 1000;
     while(1)
     {
-
         draw_image("Images/Settings.png", 0, 0, finestrax, finestray, 255);
 
         const int margineY = 130;
@@ -1015,6 +1091,7 @@ void coseDaFarePrimaDiIniziare()
     oggetti();
 }
 
+
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
@@ -1024,7 +1101,7 @@ int main(int argc, char* argv[])
     char personaggioDx[1000] = "Images/unicorno6.png";
     char scelta[100] = "mouse";
     int cosafare = 0;
-    ultimeImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
+    lastSettings(personaggioSx, personaggioDx, sfondo, scelta);
     init();
     set_window(finestrax,finestray,"Unicorn's Game");
     while(!done())
@@ -1062,7 +1139,7 @@ int main(int argc, char* argv[])
 
         case 2:                                         //INSTRUCTIONS
         {
-            istruzioni();
+            instructions();
             break;
         }
 
@@ -1070,7 +1147,13 @@ int main(int argc, char* argv[])
         {
             //cout << sfondo << endl;
             settings(personaggioSx, personaggioDx, sfondo, scelta);
-            aggiornaImpostazioni(personaggioSx, personaggioDx, sfondo, scelta);
+            updtateSettings(personaggioSx, personaggioDx, sfondo, scelta);
+            break;
+        }
+        case 4:
+        {
+            ShowHighScore();
+            //cout << "Stiamo lavorando per voi!" << endl;
             break;
         }
         }
