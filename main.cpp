@@ -53,7 +53,7 @@ const int quantiBlocchi = 4;
 const int quantiTipiMostri = 2;
 const int quantiMostriNelGioco = 5;
 const int viteMostro = 2;
-const int marginePunteggio = 10;        //Per disegnare gli high scores 
+const int marginePunteggio = 10;        //Per disegnare gli high scores
 
 int tempo;
 int velocitaP = 15;
@@ -729,6 +729,8 @@ void gioco(char stringa[], char scelta[], char sx[], char dx[])
 
     if(y_personaggio > finestray && vite > 0)
     {
+    if(blocco[ultimoTocco].Y > finestray)
+        ultimoTocco--;
         x_personaggio = blocco[ultimoTocco].X + 10;
         y_personaggio = blocco[ultimoTocco].Y - grandezzaPersonaggio;
         vite--;
@@ -1099,7 +1101,7 @@ int main(int argc, char* argv[])
     char sfondo[1000] = "Images/sfondo1.jpg";
     char personaggioSx[1000] = "Images/unicorno5.png";
     char personaggioDx[1000] = "Images/unicorno6.png";
-    char scelta[100] = "mouse";
+    char scelta[100] = "tasti";
     int cosafare = 0;
     lastSettings(personaggioSx, personaggioDx, sfondo, scelta);
     init();
