@@ -872,14 +872,14 @@ void ShowHighScore()
 
         for(int i = 0; i < quantiPunteggi; i++)
         {
-            int larghezza = text_width("Font/OpenSans-regular.ttf", 20, top[i].nome);
-            int altezza = text_height("Font/OpenSans-regular.ttf", 20, top[i].nome);
-            draw_text("Font/OpenSans-regular.ttf", 20, top[i].nome, margine + (larghezzaBottone - larghezza)/2, inizioBottoni + i*altezzaBottone + i*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+            int larghezza = text_width("Font/OpenSans-Regular.ttf", 20, top[i].nome);
+            int altezza = text_height("Font/OpenSans-Regular.ttf", 20, top[i].nome);
+            draw_text("Font/OpenSans-Regular.ttf", 20, top[i].nome, margine + (larghezzaBottone - larghezza)/2, inizioBottoni + i*altezzaBottone + i*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
             char punteggio[100];
             int a = sprintf(punteggio, "%d", top[i].punteggio);
-            larghezza =text_width("Font/OpenSans-regular.ttf", 20, punteggio);
-            altezza = text_height("Font/OpenSans-regular.ttf", 20, punteggio);
-            draw_text("Font/OpenSans-regular.ttf", 20, punteggio, margine + distacco/2 + larghezzaBottone + (altezzaBottone - larghezza)/2, inizioBottoni + i*altezzaBottone + i*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+            larghezza =text_width("Font/OpenSans-Regular.ttf", 20, punteggio);
+            altezza = text_height("Font/OpenSans-Regular.ttf", 20, punteggio);
+            draw_text("Font/OpenSans-Regular.ttf", 20, punteggio, margine + distacco/2 + larghezzaBottone + (altezzaBottone - larghezza)/2, inizioBottoni + i*altezzaBottone + i*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
         }
 
         draw_image("Images/bottone.png", bottoneX, bottoneY, bottone, bottone);
@@ -961,21 +961,21 @@ int menu()
             draw_filled_rect(margine,inizioBottoni + (altezzaBottone + distacco)*(i-1),larghezzaBottone,altezzaBottone,Color(253,225,127,255));
     }
 
-    int larghezza = text_width("Font/OpenSans-regular.ttf", 20, "Gioca!");
-    int altezza = text_height("Font/OpenSans-regular.ttf", 20, "Gioca!");
-    draw_text("Font/OpenSans-regular.ttf", 20, "Gioca!", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+    int larghezza = text_width("Font/OpenSans-Regular.ttf", 20, "Gioca!");
+    int altezza = text_height("Font/OpenSans-Regular.ttf", 20, "Gioca!");
+    draw_text("Font/OpenSans-Regular.ttf", 20, "Gioca!", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + (altezzaBottone - altezza)/2, Color(192,86,243,255));
 
-    larghezza = text_width("Font/OpenSans-regular.ttf", 20, "Istruzioni");
-    altezza = text_height("Font/OpenSans-regular.ttf", 20, "Istruzioni");
-    draw_text("Font/OpenSans-regular.ttf", 20, "Istruzioni", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + altezzaBottone + distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+    larghezza = text_width("Font/OpenSans-Regular.ttf", 20, "Istruzioni");
+    altezza = text_height("Font/OpenSans-Regular.ttf", 20, "Istruzioni");
+    draw_text("Font/OpenSans-Regular.ttf", 20, "Istruzioni", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + altezzaBottone + distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
 
-    larghezza = text_width("Font/OpenSans-regular.ttf", 20, "Impostazioni");
-    altezza = text_height("Font/OpenSans-regular.ttf", 20, "Impostazioni");
-    draw_text("Font/OpenSans-regular.ttf", 20, "Impostazioni", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + 2*altezzaBottone + 2*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+    larghezza = text_width("Font/OpenSans-Regular.ttf", 20, "Impostazioni");
+    altezza = text_height("Font/OpenSans-Regular.ttf", 20, "Impostazioni");
+    draw_text("Font/OpenSans-Regular.ttf", 20, "Impostazioni", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + 2*altezzaBottone + 2*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
 
-    larghezza = text_width("Font/OpenSans-regular.ttf", 20, "High scores");
-    altezza = text_height("Font/OpenSans-regular.ttf", 20, "High scores");
-    draw_text("Font/OpenSans-regular.ttf", 20, "High scores", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + 3*altezzaBottone + 3*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
+    larghezza = text_width("Font/OpenSans-Regular.ttf", 20, "High scores");
+    altezza = text_height("Font/OpenSans-Regular.ttf", 20, "High scores");
+    draw_text("Font/OpenSans-Regular.ttf", 20, "High scores", margine + (larghezzaBottone - larghezza)/2, inizioBottoni + 3*altezzaBottone + 3*distacco + (altezzaBottone - altezza)/2, Color(192,86,243,255));
 
 
     return 0;
