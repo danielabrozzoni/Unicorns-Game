@@ -1,4 +1,4 @@
-#include "vsgl2.h"
+#include "Vsgl2/vsgl2.h"
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
