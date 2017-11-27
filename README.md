@@ -1,8 +1,6 @@
 # Unicorns Game
 
-#### Have you ever dreamt being an unicorn that jumps on fake-clouds?
-#### No?
-#### However, now you can!
+#### Have you ever dreamt being an unicorn that jumps on fake-clouds? No? However, now you can!
 
 ## How to install
 ### Step 1: 
@@ -12,11 +10,12 @@ In the same page, you'll find how to install vsgl2 library. It is not important 
 ### Step 2: 
 Install this game project.
 As vsgl2 library, it can be done in two ways:
-- Without using ```git```: download the zip file at the beginning of this page (```Clone or download button```), extract it wherever you want, open the file *.cpb using codeblocks, then run it and play
+- Without using ```git```: download the zip file at the beginning of this page (```Clone or download button```), extract it wherever you want
 - Using ```git```: in this case you have to install ```git``` first, then write the following command:
 ```bash
 git clone https://github.com/imaprincess/Unicorns-Game.git
 ```  
+If you have codeblocks, you can open .cpb file and run the game directly there, if you haven't got it you can run in your terminal run.sh, but make sure you are in the project directory and not in your home! 
 
 ## How to play
 Use left and right arrows to move the unicorn and make it jump on fake-clouds (they are rectangles, but that's not important).
