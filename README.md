@@ -18,9 +18,10 @@ git clone https://github.com/imaprincess/Unicorns-Game.git
 If you have codeblocks, you can open .cpb file and run the game directly there; 
 if you haven't got it, there is a file inside the directory you have just downloaded that runs the game (I don't think it will work if you are using Windows!): 
 
-```cd /your/directories/Unicorns-Game```
-
-```./run.sh```
+```bash
+cd /your/directories/Unicorns-Game
+./run.sh
+```
 
 ## How to play
 
